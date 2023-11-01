@@ -10,7 +10,7 @@
 ├── src/          # .py files for prediction and control a car
 │   ├── main.py
 │
-|── docs/          # .md files documentations for the project
+│── docs/          # .md files documentations for the project
 │   ├── CNN.md 
 │   ├── Carla.md
 │   ├── Control_car.md
