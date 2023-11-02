@@ -5,12 +5,10 @@
 ├── README.md       
 ├── subject.pdf   # subject of the project
 │ 
-├── notebooks/    # .ipynb files for data processing and model training
-│ 
-├── src/          # .py files for prediction and control a car
+├── src/          # .py .ipynb files for building a model and control a car
 │   ├── main.py
 │
-│── docs/          # .md files documentations for the project
+│── docs/         # .md files documentations for the project
 │   ├── CNN.md 
 │   ├── Carla.md
 │   ├── Control_car.md
