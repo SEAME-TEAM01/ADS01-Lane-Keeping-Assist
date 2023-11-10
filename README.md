@@ -1,7 +1,7 @@
 # Lane Keeping Assist
 Welcome!
 
-## :classical_building: Repository Structure
+## 🏛️ Repository Structure
 ```bash
 ├── README.md       
 ├── subject.pdf   # subject of the project
@@ -16,20 +16,18 @@ Welcome!
 │   ├── Data_processing.md
 ```
 
-## :card_file_box: Table of Contents
+## 🗃️ Table of Contents
+- [Repository Structure](#classical_building-repository-structure)
+- [Table of Contents](#card_file_box-table-of-contents)
+- [Tech Stacks](#computer-tech-stacks)
+- [Project Goal](#goal_net-project-goal)
+- [Contributor](#office_worker-contributor)
 
-- [Lane Keeping Assist](#lane-keeping-assist)
-  - [:classical\_building: Repository Structure](#classical_building-repository-structure)
-  - [:card\_file\_box: Table of Contents](#card_file_box-table-of-contents)
-  - [:computer: Tech Stacks](#computer-tech-stacks)
-  - [:goal\_net: Project Goal](#goal_net-project-goal)
-  - [:office\_worker: Contributor](#office_worker-contributor)
+## 💻 Tech Stacks
 
-## :computer: Tech Stacks
+## 🥅 Project Goal
 
-## :goal_net: Project Goal
-
-## :office_worker: Contributor
+## 🧑‍💼 Contributor
 - @KKWANH
 - @Shuta-Syd
 - @welida42
