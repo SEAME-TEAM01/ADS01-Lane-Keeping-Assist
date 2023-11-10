@@ -1,13 +1,6 @@
 # Lane Keeping Assist
 Welcome!
 
-## Table of Contents
-│- [Lane Keeping Assist](#lane-keeping-assist)
-    - [Repository Structure](#repository-structure)
-    - [Tech Stacks](#tech-stacks)
-    - [Project Goal](#project-goal)
-    - [Contributor](#contributor)
-
 ## Repository Structure
 ```bash
 ├── README.md       
@@ -21,6 +14,14 @@ Welcome!
 │   ├── Control_car.md
 │   ├── Data_processing.md
 ```
+
+## Table of Contents
+- [Lane Keeping Assist](#lane-keeping-assist)
+  - [Repository Structure](#repository-structure)
+  - [Table of Contents](#table-of-contents)
+  - [Tech Stacks](#tech-stacks)
+  - [Project Goal](#project-goal)
+  - [Contributor](#contributor)
 
 ## Tech Stacks
 
