@@ -122,7 +122,15 @@ def loop(args):
     try:
         client = carla.Client(args.host, args.port)
         client.set_timeout(RECORD_CLIENT_TIMEOUT)
-        sim_world = client.get_world()
+        sim_world = client.load_world('Town03_Opt', carla.MapLayer.Walls)
+        sim_world.unload_map_layer(carla.MapLayer.Buildings)
+        sim_world.unload_map_layer(carla.MapLayer.Decals)
+        sim_world.unload_map_layer(carla.MapLayer.Foliage)
+        sim_world.unload_map_layer(carla.MapLayer.ParkedVehicles)
+        sim_world.unload_map_layer(carla.MapLayer.Particles)
+        sim_world.unload_map_layer(carla.MapLayer.Ground)
+        sim_world.unload_map_layer(carla.MapLayer.Props)
+        sim_world.unload_map_layer(carla.MapLayer.StreetLights)
 
         if args.sync:
             original_settings = sim_world.get_settings()
@@ -146,6 +154,7 @@ def loop(args):
 
         hud         = HUD(args.width, args.height, __doc__)
         world       = World(sim_world, hud, args)
+        world.camera_manager.toggle_camera()
         controller  = KeyboardControl(world, args.autopilot)
 
         if args.sync:   sim_world.tick()
