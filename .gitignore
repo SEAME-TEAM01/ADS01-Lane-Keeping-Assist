@@ -1,5 +1,7 @@
 # Custom
 dataset/*
+carla/
+_out/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
