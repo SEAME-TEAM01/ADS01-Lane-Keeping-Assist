@@ -55,7 +55,7 @@ from    util.colors \
         import  *
 from    util.prints \
         import  *
-from    util.variables \
+from    util.configs \
         import  *
 from    util.utils \
         import  *
@@ -64,16 +64,9 @@ from    util.utils \
 # Import Libraries
 try:
     import  os
-    import  re
     import  sys
     import  glob
-    import  math
-    import  numpy
     import  pygame
-    import  random
-    import  weakref
-    import  datetime
-    import  collections
 except  ImportError as exception:
     print_failure("Failed to load some libraries. Check all packages installed properly.")
     print_failure("Exception message is:")
@@ -121,7 +114,7 @@ def loop(args):
 
     try:
         client = carla.Client(args.host, args.port)
-        client.set_timeout(RECORD_CLIENT_TIMEOUT)
+        client.set_timeout(100.0)
         sim_world = client.load_world('Town03_Opt', carla.MapLayer.Walls)
         sim_world.unload_map_layer(carla.MapLayer.Buildings)
         sim_world.unload_map_layer(carla.MapLayer.Decals)
