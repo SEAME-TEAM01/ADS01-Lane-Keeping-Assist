@@ -1,9 +1,9 @@
-# dataset.py
 import os
 import json
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 DATASET_DIR = '/dataset/TUSimple/tain_set/'
 
@@ -32,7 +32,8 @@ class LaneDataset():
 
   def process_label_file(self, file_path, write):
     with open(file_path) as f:
-      for line in f:
+      lines = f.readlines()
+      for line in tqdm(lines, desc="Processing lines"):
         info = json.loads(line)
         img_path = os.path.join(self.dataset_path, info['raw_file'])
         lanes = info['lanes']
@@ -40,29 +41,28 @@ class LaneDataset():
 
         raw_img = cv2.imread(img_path)
         self.data.append(raw_img)
-        lanes = [[(x,y) for (x,y) in zip(lane, h_samples) if x >=0] for lane in lanes]
 
-        bin_mask = np.zeros_like(raw_img).astype(np.uint8)
-        ins_mask = np.zeros_like(raw_img).astype(np.uint8)
-        skip = False
 
-        color_ins = [[70,70,70],[120,120,120],[20,20,20],[170,170,170]]
-        color_bin = [[255,255,255],[255,255,255],[255,255,255],[255,255,255]]
+        if (write == True):
+          bin_mask = np.zeros_like(raw_img).astype(np.uint8)
+          ins_mask = np.zeros_like(raw_img).astype(np.uint8)
 
-        for i in range(len(lanes)):
-          if (len(lanes[i]) == 0):
-            skip = False
-            break
+          lanes = [[(x,y) for (x,y) in zip(lane, h_samples) if x >=0] for lane in lanes]
+
+          color_ins = [[70,70,70],[120,120,120],[20,20,20],[170,170,170]]
+          color_bin = [[255,255,255],[255,255,255],[255,255,255],[255,255,255]]
+
+          for i in range(len(lanes)):
+            if (len(lanes[i]) == 0):
+              continue
           else:
-            cv2.polylines(ins_mask, np.int32([lanes[i]]), isClosed=False, color=color_ins[i], thickness=5)
-            cv2.polylines(bin_mask, np.int32([lanes[i]]), isClosed=False, color=color_bin[i], thickness=5)
-            skip = False
-        if skip == True:
-          print('Number of lanes is not 4!')
+              cv2.polylines(ins_mask, np.int32([lanes[i]]), isClosed=False, color=color_ins[i], thickness=5)
+              cv2.polylines(bin_mask, np.int32([lanes[i]]), isClosed=False, color=color_bin[i], thickness=5)
+
+          cv2.imwrite(img_path.split('.jpg')[0]+ '_bin.jpg', bin_mask)
+          cv2.imwrite(img_path.split('.jpg')[0]+ '_ins.jpg', ins_mask)
         else:
-          if (write == True):
-            cv2.imwrite(img_path.split('.jpg')[0]+ '_bin.jpg', bin_mask)
-            cv2.imwrite(img_path.split('.jpg')[0]+ '_ins.jpg', ins_mask)
-          else:
-            self.bin_label.append(bin_mask)
-            self.ins_label.append(ins_mask)
+          bin_mask = cv2.imread(img_path.split('.jpg')[0]+ '_bin.jpg')
+          ins_mask = cv2.imread(img_path.split('.jpg')[0]+ '_ins.jpg')
+          self.bin_label.append(bin_mask)
+          self.ins_label.append(ins_mask)
