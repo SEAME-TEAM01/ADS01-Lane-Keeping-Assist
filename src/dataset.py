@@ -2,6 +2,7 @@ import os
 import json
 import cv2
 import numpy as np
+from PIL import Image
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
@@ -19,7 +20,7 @@ class LaneDataset():
     if self.mode == 'train':
       label_files = [
           os.path.join(self.dataset_path, f"label_data_{suffix}.json")
-          for suffix in ('0313', '0531')
+          for suffix in ('0313','0531',)
       ]
     elif self.mode == 'eval':
       label_files = [
@@ -28,9 +29,12 @@ class LaneDataset():
       ]
 
     for label_file in label_files:
-      self.process_label_file(label_file, write=False)
+      self.process_label_file(label_file, write=False, resize=(512, 256))
+    self.data = np.array(self.data)
+    self.bin_label = np.array(self.bin_label)
+    self.ins_label = np.array(self.ins_label)
 
-  def process_label_file(self, file_path, write):
+  def process_label_file(self, file_path, write, resize):
     with open(file_path) as f:
       lines = f.readlines()
       for line in tqdm(lines, desc="Processing lines"):
@@ -40,7 +44,9 @@ class LaneDataset():
         h_samples = info['h_samples']
 
         raw_img = cv2.imread(img_path)
-        self.data.append(raw_img)
+        raw_img = Image.fromarray(raw_img)
+        raw_img = raw_img.resize(resize)
+        self.data.append(np.array(raw_img, dtype=np.float32))
 
 
         if (write == True):
@@ -55,14 +61,23 @@ class LaneDataset():
           for i in range(len(lanes)):
             if (len(lanes[i]) == 0):
               continue
-          else:
+            else:
               cv2.polylines(ins_mask, np.int32([lanes[i]]), isClosed=False, color=color_ins[i], thickness=5)
               cv2.polylines(bin_mask, np.int32([lanes[i]]), isClosed=False, color=color_bin[i], thickness=5)
 
           cv2.imwrite(img_path.split('.jpg')[0]+ '_bin.jpg', bin_mask)
           cv2.imwrite(img_path.split('.jpg')[0]+ '_ins.jpg', ins_mask)
         else:
-          bin_mask = cv2.imread(img_path.split('.jpg')[0]+ '_bin.jpg')
+          bin_mask = cv2.imread(img_path.split('.jpg')[0] + '_bin.jpg')
+
+          bin_mask = Image.fromarray(bin_mask)
+          bin_mask = bin_mask.resize(resize)
+          label_bin = np.zeros([resize[1], resize[0]], dtype=np.uint8)
+          label_bin = np.array(bin_mask, dtype=np.uint8)
+          label_bin[label_bin != 0] = 1
+          self.bin_label.append(label_bin)
+
           ins_mask = cv2.imread(img_path.split('.jpg')[0]+ '_ins.jpg')
-          self.bin_label.append(bin_mask)
-          self.ins_label.append(ins_mask)
+          ins_mask = Image.fromarray(ins_mask)
+          ins_mask = ins_mask.resize(resize)
+          self.ins_label.append(np.array(ins_mask, dtype=np.float32))

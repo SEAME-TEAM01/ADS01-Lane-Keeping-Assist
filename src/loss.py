@@ -1,12 +1,13 @@
 import tensorflow as tf
 
+# loss.py
 def instance_loss(instance_label, net_out, embed_size=4, img_size=(256, 512)):
-
     k_instance = 1.0
     k_dist = 1.0
 
 
     inst_seg = net_out
+    instance_label = rgb_to_instance_ids(instance_label)
     _, var_loss, dist_loss, reg_loss = discriminative_loss(inst_seg, instance_label, embed_size, img_size)
 
 
@@ -14,9 +15,14 @@ def instance_loss(instance_label, net_out, embed_size=4, img_size=(256, 512)):
     dist_loss = dist_loss * k_dist
     inst_loss = var_loss + dist_loss
 
-    # print(inst_loss.dtype)
-
     return inst_loss
+
+def rgb_to_instance_ids(rgb_labels):
+    instance_ids = rgb_labels[..., 0] * 65536 + rgb_labels[..., 1] * 256 + rgb_labels[..., 2]
+
+    instance_ids = tf.expand_dims(instance_ids, -1)
+
+    return instance_ids
 
 def discriminative_loss_single(prediction, correct_label, feature_dim, label_shape,
                             delta_v=0.5, delta_d=3, param_var=1.0, param_dist=1.0, param_reg=0.0):
