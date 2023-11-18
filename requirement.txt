@@ -1,0 +1,11 @@
+numpy==1.23.5
+Pillow==9.40
+tensorflow==2.14.0
+tensorflow-datasets==4.9.3
+tensorflow-gcs-config==2.14.0
+keras==2.14.0
+focal-loss==0.0.7
+sklearn-pandas==2.2.0
+matplotlib==3.7.1
+opencv-python==4.8.0.76
+tqdm==4.66.1
