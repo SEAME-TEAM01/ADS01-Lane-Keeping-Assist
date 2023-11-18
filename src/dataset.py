@@ -6,7 +6,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-DATASET_DIR = '/dataset/TUSimple/tain_set/'
+DATASET_DIR = './dataset/TUSimple/tain_set/'
 
 class LaneDataset():
   def __init__(self, dataset_path=DATASET_DIR, train=True, size=(512,256)):
@@ -69,15 +69,15 @@ class LaneDataset():
           cv2.imwrite(img_path.split('.jpg')[0]+ '_ins.jpg', ins_mask)
         else:
           bin_mask = cv2.imread(img_path.split('.jpg')[0] + '_bin.jpg')
-
-          bin_mask = Image.fromarray(bin_mask)
-          bin_mask = bin_mask.resize(resize)
-          label_bin = np.zeros([resize[1], resize[0]], dtype=np.uint8)
-          label_bin = np.array(bin_mask, dtype=np.uint8)
-          label_bin[label_bin != 0] = 1
-          self.bin_label.append(label_bin)
-
           ins_mask = cv2.imread(img_path.split('.jpg')[0]+ '_ins.jpg')
-          ins_mask = Image.fromarray(ins_mask)
-          ins_mask = ins_mask.resize(resize)
-          self.ins_label.append(np.array(ins_mask, dtype=np.float32))
+
+        bin_mask = Image.fromarray(bin_mask)
+        bin_mask = bin_mask.resize(resize)
+        label_bin = np.zeros([resize[1], resize[0]], dtype=np.uint8)
+        label_bin = np.array(bin_mask, dtype=np.uint8)
+        label_bin[label_bin != 0] = 1
+        self.bin_label.append(label_bin)
+
+        ins_mask = Image.fromarray(ins_mask)
+        ins_mask = ins_mask.resize(resize)
+        self.ins_label.append(np.array(ins_mask, dtype=np.float32))

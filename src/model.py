@@ -1,3 +1,4 @@
+# model.py
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Rescaling, Conv2D, MaxPooling2D, UpSampling2D, concatenate, Conv2DTranspose, BatchNormalization, Dropout, ReLU, Lambda, Activation
@@ -34,27 +35,27 @@ def unet_model(HEIGHT, WIDTH, CHANNELS):
   s = input_tensor
 
   # Contracting Path
-  c1,p1 = encoder(s, 16)
-  c2,p2 = encoder(p1, 32)
-  c3,p3 = encoder(p2, 64)
-  c4,p4 = encoder(p3, 128)
+  c1,p1 = encoder(s, 64)
+  c2,p2 = encoder(p1, 128)
+  c3,p3 = encoder(p2, 256)
+  c4,p4 = encoder(p3, 512)
 
   # Bottleneck
-  b1 = bottleneck(p4, 256)
+  b1 = bottleneck(p4, 1024)
 
   # Expansive Path bin
-  c6_bin = decoder(b1, c4, 128)
-  c7_bin = decoder(c6_bin, c3, 64)
-  c8_bin = decoder(c7_bin, c2, 32)
-  c9_bin = decoder(c8_bin, c1, 16)
+  c6_bin = decoder(b1, c4, 512)
+  c7_bin = decoder(c6_bin, c3, 256)
+  c8_bin = decoder(c7_bin, c2, 128)
+  c9_bin = decoder(c8_bin, c1, 64)
 
   bin_seg = Conv2D(1, (1,1), activation='sigmoid', name='bin_seg')(c9_bin)
 
   # Expansive Path inst
-  c6_ins = decoder(b1, c4, 128)
-  c7_ins = decoder(c6_ins, c3, 64)
-  c8_ins = decoder(c7_ins, c2, 32)
-  c9_ins = decoder(c8_ins, c1, 16)
+  c6_ins = decoder(b1, c4, 512)
+  c7_ins = decoder(c6_ins, c3, 258)
+  c8_ins = decoder(c7_ins, c2, 128)
+  c9_ins = decoder(c8_ins, c1, 64)
 
   c9_ins = BatchNormalization()(c9_ins)
   c9_ins = ReLU()(c9_ins)
