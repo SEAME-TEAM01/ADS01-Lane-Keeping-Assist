@@ -2,6 +2,7 @@
 dataset/*
 carla/
 _out/
+log/*/summary.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
