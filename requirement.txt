@@ -1,5 +1,5 @@
 numpy==1.23.5
-Pillow==9.40
+Pillow==9.4.0
 tensorflow==2.14.0
 tensorflow-datasets==4.9.3
 tensorflow-gcs-config==2.14.0
