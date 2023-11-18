@@ -2,6 +2,7 @@ from PIL import Image
 import tensorflow as tf
 import numpy as np
 from sklearn.model_selection import train_test_split
+from dataset import LaneDataset
 
 def GRResize(im, size, filter):
   arr = np.array(im, dtype=np.float32) / 255.0
