@@ -21,6 +21,7 @@ def process_line(args):
   raw_img = cv2.imread(img_path)
   raw_img = Image.fromarray(raw_img)
   raw_img = raw_img.resize(resize)
+  original_img = np.array(raw_img, dtype=np.uint8)
 
   if (write == True):
     bin_mask = np.zeros_like(raw_img).astype(np.uint8)
@@ -52,7 +53,8 @@ def process_line(args):
 
   ins_mask = Image.fromarray(ins_mask)
   ins_mask = ins_mask.resize(resize)
-  return raw_img, label_bin, ins_mask
+  ins_mask = np.array(ins_mask, dtype=np.uint8)
+  return original_img, label_bin, ins_mask
 
 
 class LaneDataset():
@@ -86,7 +88,6 @@ class LaneDataset():
         lines = f.readlines()
 
     num_workers = multiprocessing.cpu_count()
-    print(num_workers)
     pool = Pool(processes=num_workers)
 
     args = ((line, self.dataset_path, write, resize) for line in lines)
