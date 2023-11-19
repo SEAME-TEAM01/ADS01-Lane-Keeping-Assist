@@ -28,8 +28,7 @@ checkpoint = ModelCheckpoint(filepath=os.path.join(filepath, 'lanenet_ckpt.epoch
                             save_best_only=True,
                             mode='min')
 
-
-Lane = LaneDataset(write=True)
+Lane = LaneDataset(write=False)
 model = unet_model(256, 512, 3)
 X_train, X_test, bin_train, bin_test, ins_train, ins_test = split_dataset(Lane)
 

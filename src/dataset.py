@@ -6,11 +6,11 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-DATASET_DIR = './dataset/TUSimple/tain_set/'
+DATASET_DIR = 'dataset/TUSimple/train_set/'
 
 class LaneDataset():
-  def __init__(self, dataset_path=DATASET_DIR, train=True, size=(512,256)):
-    self.dataset_path = dataset_path
+  def __init__(self, dataset_path=DATASET_DIR, train=True, write=False, size=(512,256)):
+    self.dataset_path = os.path.join(os.getcwd(), dataset_path)
     self.mode = 'train' if train else 'eval'
     self.image_size = size
     self.data = []
@@ -29,7 +29,7 @@ class LaneDataset():
       ]
 
     for label_file in label_files:
-      self.process_label_file(label_file, write=False, resize=(512, 256))
+      self.process_label_file(label_file, write=write, resize=(512, 256))
     self.data = np.array(self.data)
     self.bin_label = np.array(self.bin_label)
     self.ins_label = np.array(self.ins_label)
@@ -43,15 +43,15 @@ class LaneDataset():
         lanes = info['lanes']
         h_samples = info['h_samples']
 
-        raw_img = cv2.imread(img_path)
-        raw_img = Image.fromarray(raw_img)
+        original_img = cv2.imread(img_path)
+        raw_img = Image.fromarray(original_img)
         raw_img = raw_img.resize(resize)
         self.data.append(np.array(raw_img, dtype=np.float32))
 
 
         if (write == True):
-          bin_mask = np.zeros_like(raw_img).astype(np.uint8)
-          ins_mask = np.zeros_like(raw_img).astype(np.uint8)
+          bin_mask = np.zeros_like(original_img).astype(np.uint8)
+          ins_mask = np.zeros_like(original_img).astype(np.uint8)
 
           lanes = [[(x,y) for (x,y) in zip(lane, h_samples) if x >=0] for lane in lanes]
 
@@ -59,9 +59,6 @@ class LaneDataset():
           color_bin = [[255,255,255],[255,255,255],[255,255,255],[255,255,255]]
 
           for i in range(len(lanes)):
-            if (len(lanes[i]) == 0):
-              continue
-            else:
               cv2.polylines(ins_mask, np.int32([lanes[i]]), isClosed=False, color=color_ins[i], thickness=5)
               cv2.polylines(bin_mask, np.int32([lanes[i]]), isClosed=False, color=color_bin[i], thickness=5)
 
