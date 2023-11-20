@@ -24,9 +24,8 @@ filepath = BASE_DIR +  '/log/' + date_time
 checkpoint = ModelCheckpoint(filepath=os.path.join(filepath, 'lanenet_ckpt.epoch{epoch:02d}-loss{loss:.2f}.h5'),
                             monitor='val_loss',
                             verbose=1,
-                            save_weights_only=True,
                             save_best_only=True,
-                            mode='min')
+                            )
 
 Lane = LaneDataset(write=False)
 model = unet_model(256, 512, 3)
@@ -42,4 +41,4 @@ history = model.fit(X_train, bin_train,
                     callbacks=[terminate, checkpoint, earlyStop])
 
 np.save(os.path.join(BASE_DIR, 'log', date_time, 'lane4_lena_6_model.npy'), history.history)
-model.save(os.path.join(BASE_DIR, 'log', date_time,'lane4_lena_6_model.h5'))
+model.save(os.path.join(BASE_DIR, 'log', date_time,'unet-epoch{epoch:02d}-{date_time}-final.h5'))
