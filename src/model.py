@@ -1,14 +1,15 @@
 # model.py
 import tensorflow as tf
 from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Input, Rescaling, Conv2D, MaxPooling2D, UpSampling2D, concatenate, Conv2DTranspose, BatchNormalization, Dropout, ReLU, Lambda, Activation
 
 def encoder(inputs, outchan):
-  x = Conv2D(outchan, (3,3), activation='relu', padding='same')(inputs)
+  x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(inputs)
 
   x = Dropout(0.1)(x)
 
-  x = Conv2D(outchan, (3,3), activation='relu', padding='same')(x)
+  x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(x)
 
   p = MaxPooling2D((2,2), strides=2)(x)
   return x, p
@@ -19,15 +20,15 @@ def decoder(inputs, skip_features, outchan):
   skip_features = tf.image.resize(skip_features, size=(x.shape[1],x.shape[2]))
 
   x = concatenate([x, skip_features])
-  x = Conv2D(outchan, (3,3), activation='relu', padding='same')(x)
+  x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(x)
   x = Dropout(0.2)(x)
-  x = Conv2D(outchan, (3,3), activation='relu', padding='same')(x)
+  x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(x)
   return x
 
 def bottleneck(inputs, outchan):
-  x = Conv2D(outchan, (3,3), activation='relu', padding='same')(inputs)
+  x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(inputs)
   x = Dropout(0.3)(x)
-  x = Conv2D(outchan, (3,3), activation='relu', padding='same')(x)
+  x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(x)
   return x
 
 def unet_model(HEIGHT, WIDTH, CHANNELS):
@@ -61,6 +62,11 @@ def unet_model(HEIGHT, WIDTH, CHANNELS):
   c9_ins = ReLU()(c9_ins)
   ins_seg = Conv2D(4, (1,1), activation='sigmoid', name='ins_seg')(c9_ins)
 
-  model = Model(inputs=[input_tensor], outputs=[bin_seg, ins_seg])
+  model = Model(inputs=[input_tensor], outputs=bin_seg)
+
+  model.compile(optimizer=Adam(lr=1e-4),
+              loss='binary_crossentropy',
+              metrics=['accuracy']
+              )
 
   return model

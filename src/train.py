@@ -32,28 +32,14 @@ Lane = LaneDataset(write=False)
 model = unet_model(256, 512, 3)
 X_train, X_test, bin_train, bin_test, ins_train, ins_test = split_dataset(Lane)
 
-# Define a learning rate schedule
-lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-  initial_learning_rate=LR,
-  decay_steps=EPOCHS,
-  decay_rate=0.96,
-  staircase=True
-)
-optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
 
-model.compile(optimizer=optimizer,
-              loss=[BinaryFocalLoss(gamma=2), instance_loss],
-              loss_weights=LossWeights,
-              metrics={'bin_seg': iou, 'ins_seg': 'accuracy'}
-              )
-
-history = model.fit(X_train, [bin_train, ins_train],
+history = model.fit(X_train, bin_train,
                     batch_size=BS,
                     verbose=1,
                     epochs=EPOCHS,
-                    validation_data=(X_test, [bin_test, ins_test]),
+                    validation_data=(X_test, bin_test),
                     shuffle=False,
                     callbacks=[terminate, checkpoint, earlyStop])
 
 np.save(os.path.join(BASE_DIR, 'log', date_time, 'lane4_lena_6_model.npy'), history.history)
-model.save(os.path.join(BASE_DIR, 'log', date_time,'lane4_lena_6_model.hdf5'))
+model.save(os.path.join(BASE_DIR, 'log', date_time,'lane4_lena_6_model.h5'))
