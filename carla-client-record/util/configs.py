@@ -10,7 +10,7 @@ class     Configs():
 
         self.WORKER_THREADS = 1
         self.CLIENT_TIMEOUT = 30.0
-        LANE_DETECTION_TIMEOUT = 30.0
+        self.LANE_DETECTION_TIMEOUT = 30.0
 
         # Save images and labels on disk
         self.isSaving = True

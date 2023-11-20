@@ -52,6 +52,17 @@ def print_success(text, is_first_line=True):
         text
     )
 
+def print_debug(text, is_first_line=True):
+    option = "[DEBUG]  "
+    color = MAGENTA
+    if is_first_line is False:
+        option = "         "
+    print_base(
+        option,
+        color,
+        text
+    )
+
 def print_term_size_line():
     print('-' * TERM_SIZE)
 

@@ -17,6 +17,7 @@ try:
     import  glob
     from    collections \
             import  deque
+    import  traceback
 except  ImportError as exception:
     print_failure("Failed to load some libraries. Check all packages installed properly.")
     print_failure("Exception message is:")
@@ -58,6 +59,7 @@ def main():
                 deque(maxlen=config.number_of_lanepoints), 
                 deque(maxlen=config.number_of_lanepoints), 
                 deque(maxlen=config.number_of_lanepoints)]
+        print_debug("DEBUG main() - after lane def")
         game = CarlaGame(args, config, lanes)
         game.launch()
     except KeyboardInterrupt:
@@ -75,5 +77,7 @@ if  __name__ == "__main__":
         print_failure("Program failed by an exception. Error message is:")
         print_term_size_line()
         print(ITALIC, exception, RESET)
+        print()
+        print(ITALIC, traceback.format_exc(), RESET)
         print_term_size_line()
         print_end()
