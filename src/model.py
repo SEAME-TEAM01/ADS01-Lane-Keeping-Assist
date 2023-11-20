@@ -33,8 +33,8 @@ def bottleneck(inputs, outchan):
 
 def unet_model(HEIGHT, WIDTH, CHANNELS):
   input_tensor = Input((HEIGHT, WIDTH, CHANNELS))
-  s = input_tensor
-
+  s =   s = tf.keras.layers.Lambda(lambda x: x/255)(input_tensor)
+  
   # Contracting Path
   c1,p1 = encoder(s, 64)
   c2,p2 = encoder(p1, 128)

@@ -29,14 +29,14 @@ checkpoint = ModelCheckpoint(filepath=os.path.join(filepath, 'lanenet_ckpt.epoch
 
 Lane = LaneDataset(write=False)
 model = unet_model(256, 512, 3)
-X_train, X_test, bin_train, bin_test, ins_train, ins_test = split_dataset(Lane)
+X_train, X_val, bin_train, bin_val, ins_train, ins_val = split_dataset(Lane)
 
 
 history = model.fit(X_train, bin_train,
                     batch_size=BS,
                     verbose=1,
                     epochs=EPOCHS,
-                    validation_data=(X_test, bin_test),
+                    validation_data=(X_val, bin_val),
                     shuffle=False,
                     callbacks=[terminate, checkpoint, earlyStop])
 
