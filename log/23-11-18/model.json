@@ -1,0 +1,9 @@
+{
+  "script": "model.py",
+  "lossForBinary": "BinaryFocalLoss",
+  "lossForInstance": "DiscriminativeLoss",
+  "BatchSize": 24,
+  "Epochs": 100,
+  "LearningRate": "1e-4",
+  "Optimizer": "Adam"
+}
