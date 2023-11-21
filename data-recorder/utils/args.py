@@ -1,5 +1,5 @@
 # ------------------------------------------------------
-# Import Base Library
+# Import library
 import  sys
 import  argparse
 
@@ -87,7 +87,7 @@ def load_args_record():
         help    = 'list available options'
     )
 
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 1:
         raise RuntimeError(args.format_help())
 
     args = args.parse_args()
