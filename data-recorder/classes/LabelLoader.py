@@ -1,12 +1,16 @@
-import json
+# ------------------------------------------------------
+# Import library
+import  json
+import  configs as config
 
+# ------------------------------------------------------
+# LabelLoader Class
 class LabelLoader():
     """
     Helper class to load every lanepoint from the labelfiles. Extracts a list
     of 4 lanes containing their lanepoints as tuples (x,y).
     """
-    def __init__(self, config, file, file2 = None):
-        self.config = config
+    def __init__(self, file, file2 = None):
         self.label_file = open(file, 'r')
         if file2 != None:
             self.label_file2 = open(file2, 'a')
@@ -109,7 +113,7 @@ class LabelLoader():
             List of 4 lanes.
         """
         try:
-            y = self.config.h_samples
+            y = config.h_samples
             lanes = [[],[],[],[]]
             line = self.label_file.readline()
             label = json.loads(line)

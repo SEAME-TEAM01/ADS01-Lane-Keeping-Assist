@@ -8,6 +8,30 @@ import  pygame
 from    collections \
         import  deque
 
+import  configs as config
+from    utils.prints \
+        import  *
+from    utils.gets \
+        import  get_font
+from    utils.features \
+        import  reshape_image, \
+                draw_image, \
+                should_quit
+
+from    classes.CarlaClient \
+        import  CarlaClient
+from    classes.LaneMarker \
+        import  LaneMarker
+from    classes.VehicleManager \
+        import  VehicleManager
+from    classes.CarlaSyncMode \
+        import  CarlaSyncMode
+from    classes.BufferedImageSaver \
+        import  BufferedImageSaver
+from    classes.LabelSaver \
+        import  LabelSaver
+
+
 # ------------------------------------------------------
 # Find carla library
 try:
@@ -21,72 +45,48 @@ import  carla
 
 # ------------------------------------------------------
 # Import Custom Libraries
-from    settings.gets \
-        import  get_font
-
-from    util.prints \
-        import  *
-from    settings.features \
-        import  reshape_image, \
-                draw_image, \
-                should_quit
-
-from    classes.CarlaClient \
-        import  CarlaClient
-from    classes.LaneMarker \
-        import  LaneMarker
-from    classes.VehicleManager \
-        import  VehicleManager
-from    classes.CarlaSyncMode \
-        import  CarlaSyncMode
-
-from    scripts.buffered_saver \
-        import  BufferedImageSaver
-from    scripts.label_saver \
-        import  LabelSaver
 
 # ------------------------------------------------------
 # CarlaGame Class
 class   CarlaGame(CarlaClient):
-    def __init__(self, args, config, lanes):
-        # value setting from args & configs
-        self.lanes          = lanes
-        self.config         = config
-
+    def __init__(self, args, lanes):
         # client, client-timeout, world, and map as args and configs
-        pygame.init()
-        super().__init__(args, self.config)
-        print_debug("DEBUG CarlaGame-init() - after super init")
+        super().__init__(args, lanes)
         
-        self.window         = (self.config.WINDOW_WIDTH, self.config.WINDOW_HEIGHT)
-        self.filename       = f"{self.config.output_directory}/{self.config.CARLA_TOWN}/"
-        self.actor_list     = []
-
-        # display setting
+        # pygame setting
+        pygame.init()
+        self.window         = (config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
         self.display        = pygame.display.set_mode(
             self.window, 
             pygame.HWSURFACE | pygame.DOUBLEBUF
         )
         self.font           = get_font()
         self.clock          = pygame.time.Clock()
-        print_debug("DEBUG CarlaGame-init() - after display init")
 
-        # map setting
-        self.lane_marker    = LaneMarker(self.lanes, self.config)
-        self.vehicle_manager= VehicleManager(self.config)
+        # output setting
+        self.actor_list     = []
+        self.filename       = f"{config.output_directory}/{config.CARLA_TOWN}/"
+        
+        # manager setting
+        self.lane_marker    = LaneMarker(self.lanes)
+        self.vehicle_manager= VehicleManager()
         self.image_saver    = BufferedImageSaver(
                                 self.filename,
-                                self.config.number_of_images,
-                                self.config.WINDOW_WIDTH,
-                                self.config.WINDOW_HEIGHT,
+                                config.number_of_images,
+                                config.WINDOW_WIDTH,
+                                config.WINDOW_HEIGHT,
                                 3,  # depth
                                 ''  # sensorname
                             )
-        self.label_saver    = LabelSaver(self.config, self.config.train_gt)
+        self.label_saver    = LabelSaver(
+                                config.h_samples, 
+                                config.saving_directory,
+                                config.train_gt,   
+                            )
         self.image_counter  = 0
-        print_debug("DEBUG CarlaGame-init() - after managers setting")
 
-        if self.config.isThirdPerson:
+        # 
+        if config.isThirdPerson:
             self.camera_transforms=[carla.Transform(carla.Location(x=-4.5, z=2.2), carla.Rotation(pitch=-14.5)),
                                     carla.Transform(carla.Location(x=-4.0, z=2.2), carla.Rotation(pitch=-18.0))]
         else:
@@ -99,7 +99,6 @@ class   CarlaGame(CarlaClient):
                                     carla.Transform(carla.Location(x=1.8,  z=1.2), carla.Rotation(pitch=-14.5)), # camera 7
                                     carla.Transform(carla.Location(x=2.17, z=0.9), carla.Rotation(pitch=-14.5)), # camera 8
                                     carla.Transform(carla.Location(x=2.2,  z=0.7), carla.Rotation(pitch=-11.5))] # camera 9
-        print_debug("DEBUG CarlaGame-init() - after camera transform setting")
         print_info("CarlaGame initialize done")
         print_end()
 
@@ -113,14 +112,14 @@ class   CarlaGame(CarlaClient):
 
         # Initialize lane deques with a fixed number of lanepoints
         for lane in self.lanes:
-            for lanepoint in range(0, self.config.number_of_lanepoints):
+            for lanepoint in range(0, config.number_of_lanepoints):
                 lane.append(None)
 
         # Create n waypoints to have an initial route for the vehicle
-        self.waypoint_list = deque(maxlen=self.config.number_of_lanepoints)
+        self.waypoint_list = deque(maxlen=config.number_of_lanepoints)
 
-        for i in range(0, self.config.number_of_lanepoints):
-            self.waypoint_list.append(waypoint.next(i + self.config.meters_per_frame)[0])
+        for i in range(0, config.number_of_lanepoints):
+            self.waypoint_list.append(waypoint.next(i + config.meters_per_frame)[0])
         
         for lanepoint in self.waypoint_list:
             lane_markings = self.lane_marker.calculate3DLanepoints(
@@ -135,9 +134,9 @@ class   CarlaGame(CarlaClient):
         print_info("Camera Index:", camera_index)
         print_end()
 
-        if self.config.draw3DLanes:
+        if config.draw3DLanes:
             for i, color in enumerate(self.lane_marker.colormap_carla):
-                for j in range(0, self.config.number_of_lanepoints-1):
+                for j in range(0, config.number_of_lanepoints-1):
                     self.lane_marker.draw_lines(
                         self.client,
                         lane_markings[i][j],
@@ -183,7 +182,7 @@ class   CarlaGame(CarlaClient):
         
         self.display.blit(self.font.render('% 5d FPS ' % self.clock.get_fps(), True, (255, 255, 255)), (8, 10))
         self.display.blit(self.font.render('Dataset % 2d ' % self.image_saver.reset_count, True, (255, 255, 255)), (20, 30))
-        self.display.blit(self.font.render('Map: ' + self.config.CARLA_TOWN, True, (255, 255, 255)), (20, 50))
+        self.display.blit(self.font.render('Map: ' + config.CARLA_TOWN, True, (255, 255, 255)), (20, 50))
 
         pygame.display.flip()
 
@@ -197,7 +196,7 @@ class   CarlaGame(CarlaClient):
         
                 # Advance the simulation and wait for the data.
         snapshot, image_rgb, image_semseg = self.sync_mode.tick(timeout=1.0)
-        
+        print(snapshot)
         # Move own vehicle to the next waypoint
         new_waypoint = self.vehicle_manager.move_agent(self.vehicle, self.waypoint_list)
         
@@ -215,7 +214,7 @@ class   CarlaGame(CarlaClient):
         lanes_list, x_lanes_list = self.detect_lanemarkings(new_waypoint, image_semseg)
         
         # Draw all 3D lanes in carla simulator
-        if self.config.draw3DLanes:
+        if config.draw3DLanes:
             for i, color in enumerate(self.lanemarkings.colormap_carla):
                     self.lanemarkings.draw_lanes(self.client, self.lanes[i][-1], self.lanes[i][-2], self.lanemarkings.colormap_carla[color])
         
@@ -223,12 +222,12 @@ class   CarlaGame(CarlaClient):
         self.render_display(image_rgb, image_semseg, lanes_list)
 
         # Save images using buffered imagesaver
-        if self.config.isSaving:
-            if (not self.config.junctionMode and self.vehicle_manager.junctionInSightCounter <= 0) or self.config.junctionMode:
+        if config.isSaving:
+            if (not config.junctionMode and self.vehicle_manager.junctionInSightCounter <= 0) or config.junctionMode:
                 self.image_saver.add_image(image_rgb.raw_data, 'CameraRGB')
                 self.label_saver.add_label(x_lanes_list)
                 self.image_counter += 1
-                if(self.image_counter % self.config.images_until_respawn == 0):
+                if(self.image_counter % config.images_until_respawn == 0):
                     self.reset_vehicle_position()
 
     def stop_saving(self):
@@ -237,7 +236,7 @@ class   CarlaGame(CarlaClient):
 
         Returns True if we collected more than 100 .npy files
         """
-        if(self.image_saver.reset_count > self.config.total_number_of_imagesets - 1):
+        if(self.image_saver.reset_count > config.total_number_of_imagesets - 1):
             print_info("Data collected...")
             return True
         
@@ -252,9 +251,9 @@ class   CarlaGame(CarlaClient):
         self.camera_transform = self.camera_transforms[random.randint(0, len(self.camera_transforms)-1)]
 
         self.bp_camera_rgb = self.blueprint_library.find("sensor.camera.rgb")
-        self.bp_camera_rgb.set_attribute("image_size_x", f"{self.config.WINDOW_WIDTH}")
-        self.bp_camera_rgb.set_attribute("image_size_y", f"{self.config.WINDOW_HEIGHT}")
-        self.bp_camera_rgb.set_attribute("fov",          f"{self.config.FOV}")
+        self.bp_camera_rgb.set_attribute("image_size_x", f"{config.WINDOW_WIDTH}")
+        self.bp_camera_rgb.set_attribute("image_size_y", f"{config.WINDOW_HEIGHT}")
+        self.bp_camera_rgb.set_attribute("fov",          f"{config.FOV}")
         self.camera_rgb_spawnpoint = self.camera_transform
         self.camera_rgb = self.world.spawn_actor(
             self.bp_camera_rgb,
@@ -263,9 +262,9 @@ class   CarlaGame(CarlaClient):
         self.actor_list.append(self.camera_rgb)
 
         self.bp_camera_semseg = self.blueprint_library.find("sensor.camera.semantic_segmentation")
-        self.bp_camera_semseg.set_attribute("image_size_x", f"{self.config.WINDOW_WIDTH}")
-        self.bp_camera_semseg.set_attribute("image_size_y", f"{self.config.WINDOW_HEIGHT}")
-        self.bp_camera_semseg.set_attribute("fov",          f"{self.config.FOV}")
+        self.bp_camera_semseg.set_attribute("image_size_x", f"{config.WINDOW_WIDTH}")
+        self.bp_camera_semseg.set_attribute("image_size_y", f"{config.WINDOW_HEIGHT}")
+        self.bp_camera_semseg.set_attribute("fov",          f"{config.FOV}")
         self.camera_semseg_spawnpoint = self.camera_transform
         self.camera_semseg = self.world.spawn_actor(
             self.bp_camera_semseg,
@@ -283,10 +282,9 @@ class   CarlaGame(CarlaClient):
 
             with CarlaSyncMode(
                 self.world,
-                self.config,
                 self.camera_rgb,
                 self.camera_semseg,
-                fps=self.config.FPS
+                fps=config.FPS
             ) as self.sync_mode:
                 while True:
                     if should_quit() or self.stop_saving():

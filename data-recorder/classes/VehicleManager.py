@@ -4,10 +4,10 @@ import  os
 import  sys
 import  glob
 import  math
-import  numpy as np
 import  random
-from    collections \
-        import  deque
+from    utils.prints \
+        import  *
+import  configs as config
 
 # ------------------------------------------------------
 # Find carla library
@@ -20,10 +20,6 @@ except  IndexError:
     pass
 import  carla
 
-# ------------------------------------------------------
-# Import custom library
-from    util.prints \
-        import  *
 
 # ------------------------------------------------------
 # VehicleManager Library
@@ -31,16 +27,14 @@ class   VehicleManager():
     """
     Helper class to spawn and manage neighbor vehicles
     """
-    def __init__(self, config):
-        self.config = config
-
+    def __init__(self):
         self.deviation_counter = 0.0
         self.vehicles_list = []
         self.vehicleswap_counter = 0
         self.indices_of_vehicles = []
         
-        if not self.config.junctionMode:
-            self.junctionInSightCounter = self.config.number_of_lanepoints
+        if not config.junctionMode:
+            self.junctionInSightCounter = config.number_of_lanepoints
         
         print_info("VehicleManager initialize done")
         print_end()
@@ -57,11 +51,11 @@ class   VehicleManager():
         Args:
             waypoint_list: list. List of waypoints where the vehicle will be next.
         """
-        if not self.config.junctionMode:
-            if self.config.CARLA_TOWN == ('Town04' or 'Town06'):
-                res =[i for i,v in enumerate(waypoint_list) if len(v.next(self.config.meters_per_frame))>1]
+        if not config.junctionMode:
+            if config.CARLA_TOWN == ('Town04' or 'Town06'):
+                res =[i for i,v in enumerate(waypoint_list) if len(v.next(config.meters_per_frame))>1]
                 if res:
-                    junction_argument = res[0] < self.config.number_of_lanepoints - 15
+                    junction_argument = res[0] < config.number_of_lanepoints - 15
                 else:
                     junction_argument = False
                 #junction_argument = len(self.potential_new_waypoints) > 1
@@ -69,14 +63,14 @@ class   VehicleManager():
             else:
                 res =[i for i,v in enumerate(waypoint_list) if v.is_junction]
                 if res:
-                    junction_argument = res[0] < self.config.number_of_lanepoints - 15
+                    junction_argument = res[0] < config.number_of_lanepoints - 15
                 else:
                     junction_argument = False
 
                 offset = 0
             # Junctions are not included in the set of trainingsdata, so we jump over every picture where a junction is in sight 
             if junction_argument:
-                self.junctionInSightCounter = self.config.number_of_lanepoints - 20 + offset
+                self.junctionInSightCounter = config.number_of_lanepoints - 20 + offset
             else:
                 self.junctionInSightCounter -= 1 
             
@@ -97,21 +91,21 @@ class   VehicleManager():
         """
         self.deviation_counter += 0.08
         
-        if self.config.isCenter:
+        if config.isCenter:
             oscillation = 0.2
             angle = 3
         else:
             oscillation = 1
             angle = 10
 
-        vehicle.set_transform(carla.Transform(waypoint_list[0 + 6 * int(self.config.isThirdPerson)].transform.location + 
-                                              waypoint_list[0 + 6 * int(self.config.isThirdPerson)].transform.get_right_vector() * oscillation * (2/math.pi * math.asin(math.sin(self.deviation_counter))),
-                                              carla.Rotation(pitch  = waypoint_list[0 + 6 * int(self.config.isThirdPerson)].transform.rotation.pitch, 
-                                                             yaw    = waypoint_list[0 + 6 * int(self.config.isThirdPerson)].transform.rotation.yaw + angle * math.sin(self.deviation_counter), 
-                                                             roll   = waypoint_list[0 + 6 * int(self.config.isThirdPerson)].transform.rotation.roll)))
+        vehicle.set_transform(carla.Transform(waypoint_list[0 + 6 * int(config.isThirdPerson)].transform.location + 
+                                              waypoint_list[0 + 6 * int(config.isThirdPerson)].transform.get_right_vector() * oscillation * (2/math.pi * math.asin(math.sin(self.deviation_counter))),
+                                              carla.Rotation(pitch  = waypoint_list[0 + 6 * int(config.isThirdPerson)].transform.rotation.pitch, 
+                                                             yaw    = waypoint_list[0 + 6 * int(config.isThirdPerson)].transform.rotation.yaw + angle * math.sin(self.deviation_counter), 
+                                                             roll   = waypoint_list[0 + 6 * int(config.isThirdPerson)].transform.rotation.roll)))
         
         # Finally look for a new future waypoint to append to the list and show the lanepoints accordingly
-        self.potential_new_waypoints = waypoint_list[-1].next(self.config.meters_per_frame)
+        self.potential_new_waypoints = waypoint_list[-1].next(config.meters_per_frame)
         new_waypoint = random.choice(self.potential_new_waypoints)
         waypoint_list.append(new_waypoint)
         

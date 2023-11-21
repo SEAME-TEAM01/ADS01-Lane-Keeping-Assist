@@ -1,12 +1,13 @@
 # ------------------------------------------------------
-# Import base library
+# Import library
 import  os
 import  sys
 import  glob
 import  math
 import  numpy as np
-from    collections \
-        import  deque
+from    utils.prints \
+        import  *
+import  configs as config
 
 # ------------------------------------------------------
 # Find carla library
@@ -20,16 +21,10 @@ except  IndexError:
 import  carla
 
 # ------------------------------------------------------
-# Import custom library
-from    util.prints \
-        import  *
-
-# ------------------------------------------------------
 # LaneMarker Library
 class   LaneMarker():
-    def __init__(self, lanes, config):
+    def __init__(self, lanes):
         self.lanes    = lanes
-        self.config   = config
 
         self.colormap = {
             "green":    (0,   255, 0),
@@ -45,13 +40,13 @@ class   LaneMarker():
             "blue":     carla.Color(0,   0,   255),
         }
 
-        f   = self.config.WINDOW_WIDTH  / (2 * math.tan(self.config.FOV * math.pi / 360))
-        c_x = self.config.WINDOW_WIDTH  / 2
-        c_y = self.config.WINDOW_HEIGHT / 2
+        focal = config.WINDOW_WIDTH  / (2 * math.tan(config.FOV * math.pi / 360))
+        cam_x = config.WINDOW_WIDTH  / 2
+        cam_y = config.WINDOW_HEIGHT / 2
 
-        self.cameraMatrix = np.float32([[f, 0, c_x],
-                                        [0, f, c_y],
-                                        [0, 0, 1]])
+        self.cameraMatrix = np.float32([[focal, 0,      cam_x],
+                                        [0,     focal,  cam_y],
+                                        [0,     0,      1]])
     
         print_info("LaneMarker initialize done")
         print_end()
@@ -60,7 +55,7 @@ class   LaneMarker():
         client.get_world().debug.draw_point(
             point + carla.Location(z=0.05),
             size = 0.05,
-            life_time = self.config.number_of_lanepoints / self.config.FPS,
+            life_time = config.number_of_lanepoints / config.FPS,
             persistent_lines = False
         )
     
@@ -71,7 +66,7 @@ class   LaneMarker():
                 point1 + carla.Location(z=0.05),
                 thickness = 0.05,
                 color = color,
-                life_time = self.config.number_of_lanepoitns / self.config.FPS,
+                life_time = config.number_of_lanepoitns / config.FPS,
                 persistent_lines = False
             )
     
@@ -97,7 +92,7 @@ class   LaneMarker():
         right_lanemarking = lanepoint.transform.location - abVec 
         left_lanemarking = lanepoint.transform.location + abVec
         
-        if self.config.junctionMode:
+        if config.junctionMode:
             self.lanes[0].append(left_lanemarking) \
                 if lanepoint.left_lane_marking.type != carla.LaneMarkingType.NONE \
                 else self.lanes[0].append(None)
@@ -172,7 +167,7 @@ class   LaneMarker():
                 distance = math.sqrt(math.pow(lanepoint.x-last_lanepoint.x ,2)+math.pow(lanepoint.y-last_lanepoint.y ,2)+math.pow(lanepoint.z-last_lanepoint.z ,2))
             
                 # Check of there's a hole in the list
-                if distance > self.config.meters_per_frame * 3:
+                if distance > config.meters_per_frame * 3:
                     flat_lane_list_b = flat_lane_list_a
                     flat_lane_list_a = []
                     last_lanepoint = lanepoint
@@ -211,8 +206,8 @@ class   LaneMarker():
             # visualize everything on a screen, the points that are out of the screen
             # must be discarted, the same with points behind the camera projection plane.
             points_2d = points_2d.T
-            points_in_canvas_mask = (points_2d[:, 0] > 0.0) & (points_2d[:, 0] < self.config.WINDOW_WIDTH) & \
-                                    (points_2d[:, 1] > 0.0) & (points_2d[:, 1] < self.config.WINDOW_HEIGHT) & \
+            points_in_canvas_mask = (points_2d[:, 0] > 0.0) & (points_2d[:, 0] < config.WINDOW_WIDTH) & \
+                                    (points_2d[:, 1] > 0.0) & (points_2d[:, 1] < config.WINDOW_HEIGHT) & \
                                     (points_2d[:, 2] > 0.0)
             
             points_2d = points_2d[points_in_canvas_mask]
@@ -250,8 +245,8 @@ class   LaneMarker():
             # visualize everything on a screen, the points that are out of the screen
             # must be discarted, the same with points behind the camera projection plane.
             points_2d = points_2d.T
-            points_in_canvas_mask = (points_2d[:, 0] > 0.0) & (points_2d[:, 0] < self.config.WINDOW_WIDTH) & \
-                                    (points_2d[:, 1] > 0.0) & (points_2d[:, 1] < self.config.WINDOW_HEIGHT) & \
+            points_in_canvas_mask = (points_2d[:, 0] > 0.0) & (points_2d[:, 0] < config.WINDOW_WIDTH) & \
+                                    (points_2d[:, 1] > 0.0) & (points_2d[:, 1] < config.WINDOW_HEIGHT) & \
                                     (points_2d[:, 2] > 0.0)
             
             points_2d = points_2d[points_in_canvas_mask]
@@ -297,31 +292,31 @@ class   LaneMarker():
                     continue
                 if last_point[0]==-1:
                     gap = True
-                    last_point=[0.5* self.config.WINDOW_WIDTH, self.config.WINDOW_HEIGHT-1]
-                for y_value in reversed(self.config.h_samples):
+                    last_point=[0.5* config.WINDOW_WIDTH, config.WINDOW_HEIGHT-1]
+                for y_value in reversed(config.h_samples):
                     if gap and (last_point[1] >= y_value and xy_val[1] < y_value):
                         x_coord.append(-2)
-                    elif (last_point == lane_list[0] and last_point[1] < y_value) and last_point[1] < self.config.WINDOW_HEIGHT - 0.4 * self.config.WINDOW_HEIGHT :
+                    elif (last_point == lane_list[0] and last_point[1] < y_value) and last_point[1] < config.WINDOW_HEIGHT - 0.4 * config.WINDOW_HEIGHT :
                         x_coord.append(-2)
-                    elif (last_point[1] >= y_value and xy_val[1] < y_value) or (last_point == lane_list[0] and last_point[1] < y_value) and last_point[1] >= self.config.WINDOW_HEIGHT - 0.4 * self.config.WINDOW_HEIGHT:
+                    elif (last_point[1] >= y_value and xy_val[1] < y_value) or (last_point == lane_list[0] and last_point[1] < y_value) and last_point[1] >= config.WINDOW_HEIGHT - 0.4 * config.WINDOW_HEIGHT:
                         if last_point[1]-xy_val[1] == 0:
                             intersection = last_point[1]
                         else:
                             intersection = xy_val[0] + ((y_value-xy_val[1])*(last_point[0]-xy_val[0]))/(last_point[1]-xy_val[1])
-                        if intersection >= self.config.WINDOW_WIDTH or intersection < 0:
+                        if intersection >= config.WINDOW_WIDTH or intersection < 0:
                             x_coord.append(-2)
                         else:
                             x_coord.append(int(intersection))
                 gap = False
                 last_point = xy_val
 
-            while len(x_coord) < len(self.config.h_samples):
+            while len(x_coord) < len(config.h_samples):
                 x_coord.append(-2)
-            return list(zip(reversed(x_coord), self.config.h_samples))
+            return list(zip(reversed(x_coord), config.h_samples))
         else:
-            for i in self.config.h_samples:
+            for i in config.h_samples:
                 x_coord.append(-2)
-            return list(zip(x_coord, self.config.h_samples))
+            return list(zip(x_coord, config.h_samples))
 
 
     def filter2DLanepoints(self, lane_list, image):

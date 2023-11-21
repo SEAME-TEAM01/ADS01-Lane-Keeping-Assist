@@ -1,29 +1,33 @@
-import os
-import json
+# ------------------------------------------------------
+# Import library
+from    utils.prints \
+        import  *
+import  os
+import  json
 
 # ------------------------------------------------------
-# Import custom library
-from    util.prints \
-        import  *
-
-class LabelSaver():
+# LabelSaver Class
+class   LabelSaver():
     """
     Helper class to save all the lanedata (labels). Each label contains a list 
     of the x values of a lane, their corresponding predefined y-values and 
     their path to the image.
     """
-    def __init__(self, config, label_file):
-        self.config = config
+    def __init__(self, h_samples, saving_directory, label_file):
+        self.h_samples = h_samples
+        self.saving_directory = saving_directory
+        self.label_file = label_file
+
         self.image_name = 0
         
-        folder = os.path.dirname(label_file)
+        folder = os.path.dirname(self.label_file)
         if not os.path.isdir(folder):
             os.makedirs(folder)
             
-        if os.path.exists(label_file):
-            os.remove(label_file)
+        if os.path.exists(self.label_file):
+            os.remove(self.label_file)
         
-        self.file = open(label_file, 'a')
+        self.file = open(self.label_file, 'a')
 
         print_info("VehicleManager initialize done")
         print_end()
@@ -31,8 +35,8 @@ class LabelSaver():
 
     def add_label(self, x_lane_list):
         filestring = {"lanes": x_lane_list,
-                      "h_samples": self.config.h_samples,
-                      "raw_file": self.config.saving_directory + f'{self.image_name:04d}' + '.jpg'}
+                      "h_samples": self.h_samples,
+                      "raw_file": self.saving_directory + f'{self.image_name:04d}' + '.jpg'}
         
         jsonstring = json.dumps(filestring)
         self.file.write(jsonstring + '\n')

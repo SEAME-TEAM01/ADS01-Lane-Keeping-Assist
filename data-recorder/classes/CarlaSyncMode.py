@@ -1,11 +1,10 @@
 # ------------------------------------------------------
-# Import base library
+# Import library
 import  os
 import  sys
 import  glob
 import  queue
-from    collections \
-        import  deque
+import  configs as config
 
 # ------------------------------------------------------
 # Find carla library
@@ -30,12 +29,11 @@ class   CarlaSyncMode(object):
                 data = sync_mode.tick(timeout=1.0)
     """
 
-    def __init__(self, world, config, *sensors, **kwargs):
+    def __init__(self, world, *sensors, **kwargs):
         self.world          = world
         self.sensors        = sensors
-        self.config         = config
         self.frame          = None
-        self.delta_seconds  = 1.0 / kwargs.get('fps', self.config.FPS)
+        self.delta_seconds  = 1.0 / kwargs.get('fps', config.FPS)
         self._queues        = []
         self._settings      = None
     

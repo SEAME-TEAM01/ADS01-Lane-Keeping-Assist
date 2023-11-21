@@ -1,31 +1,33 @@
-import cv2
-import numpy as np
-import os
-from PIL import Image
-from scripts.label_loader import LabelLoader
-
+# ------------------------------------------------------
+# Import library
+import  os
+import  cv2
+import  numpy as np
+import  configs as config
+from    PIL \
+        import  Image
+from    classes.LabelLoader \
+        import  LabelLoader
+# ------------------------------------------------------
+# ImageSaver Class
 class   ImageSaver():
     """
     Class used to load all the .npy files with LabelLoader and then convert into an image.
     Also draws the corresponding ground truth lanepoints on the images and saves the images seperately.
     """
-
-    def __init__(self, config):
-        self.config = config
-
     def execute(self):
         self.colormap = [(0, 255, 0),
                         (255, 0, 0),
                         (255, 255, 0),
                         (0, 0, 255)]
 
-        self.label_loader = LabelLoader(self.config.train_gt)
-        self.label_loader2 = LabelLoader(self.config.train_gt, self.config.overall_train_gt)
+        self.label_loader = LabelLoader(config.train_gt)
+        self.label_loader2 = LabelLoader(config.train_gt, config.overall_train_gt)
         self.image_name = 0
         self.image_name_gt = 0
         
         for i, image_set in enumerate(self.load_imagesets()):
-            if(image_set.shape[0] == self.config.number_of_images):
+            if(image_set.shape[0] == config.number_of_images):
                 for image in image_set:
                     self.save_images_with_lanepoints(image)
                     self.save_image_to_disk(image)
@@ -44,9 +46,9 @@ class   ImageSaver():
         """
         
         imageset_list = []
-        for filename in os.listdir(self.config.loading_directory):
+        for filename in os.listdir(config.loading_directory):
             if filename.endswith('.npy'):
-                load_file = os.path.join(self.config.loading_directory, filename)
+                load_file = os.path.join(config.loading_directory, filename)
                 imageset = np.load(load_file)
                 imageset_list.append(imageset)
                 print('Loading', load_file)
@@ -67,13 +69,13 @@ class   ImageSaver():
         
         image = Image.fromarray(cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB), 'RGB')
         
-        save_name = self.config.saving_directory + str(self.label_loader2.calculate_folder(self.config.h_samples))
+        save_name = config.saving_directory + str(self.label_loader2.calculate_folder(config.h_samples))
         if not "nolanes" in save_name:
             folder = os.path.dirname(save_name)
             if not os.path.isdir(folder):
                 os.makedirs(folder)
             files_in_folder = len([name for name in os.listdir(folder) if os.path.isfile(os.path.join(folder, name))])
-            if files_in_folder < self.config.max_files_per_classification:
+            if files_in_folder < config.max_files_per_classification:
                 save_name = save_name + f'{(files_in_folder + 1) :04d}' + '.jpg'
                 #image.save(save_name + '.jpg', 'JPEG')
 
@@ -95,7 +97,7 @@ class   ImageSaver():
                 cv2.circle(image_rgb, (lanepoint[0], lanepoint[1]), 3, self.colormap[i], thickness=1)
         
         image = Image.fromarray(image_rgb)
-        save_name = os.path.join('data/debug/', f'{self.config.CARLA_TOWN}/{self.image_name_gt:04d}')
+        save_name = os.path.join('data/debug/', f'{config.CARLA_TOWN}/{self.image_name_gt:04d}')
         self.image_name_gt += 1
         
         folder = os.path.dirname(save_name)

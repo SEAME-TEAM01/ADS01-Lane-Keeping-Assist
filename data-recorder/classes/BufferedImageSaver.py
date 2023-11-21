@@ -1,11 +1,15 @@
-import numpy as np
-import os
-
 # ------------------------------------------------------
 # Import custom library
-from    util.prints \
+from    utils.prints \
         import  *
 
+# ------------------------------------------------------
+# Import library
+import  numpy as np
+import  os
+
+# ------------------------------------------------------
+# BufferedImageSaver Class
 class   BufferedImageSaver:
     """
     Stores incoming data in a Numpy ndarray and saves the array to disk once

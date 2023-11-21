@@ -1,20 +1,19 @@
 # ------------------------------------------------------
-# Import Util Libraries
-from    util.colors \
+# Import custom library
+import  configs as config
+from    utils.colors \
         import  *
-from    util.prints \
+from    utils.prints \
         import  *
-from    util.configs \
-        import  *
-from    util.utils \
-        import  *
+from    utils.args \
+        import  load_args_record
+from    classes.CarlaGame \
+        import  CarlaGame
 
 # ------------------------------------------------------
-# Import Libraries
+# Import Library
 try:
-    import  os
-    import  sys
-    import  glob
+    import  logging
     from    collections \
             import  deque
     import  traceback
@@ -27,40 +26,18 @@ except  ImportError as exception:
     print_end()
 
 # ------------------------------------------------------
-# Find carla library
-try:
-    sys.path.append(glob.glob("../carla/dist/carla-*%d.%d-%s.egg" % (
-        sys.version_info.major,
-        sys.version_info.minor,
-        "win-amd64" if os.name == "nt" else "linux-x86_64"))[0])
-except  IndexError:
-    pass
-import  carla
-
-# ------------------------------------------------------
-# Import Features
-from    settings.args \
-        import  load_args_record
-from    settings.logs \
-        import  log_setting
-from    classes.CarlaGame \
-        import  CarlaGame
-
-
-# ------------------------------------------------------
 # Main function
 def main():
-    config = Configs()
     args = load_args_record()
-    log_setting(args)
+    log_level = logging.DEBUG if args.debug else logging.INFO
+    logging.basicConfig(format="%(levelname)s: %(message)s", level=log_level)
 
     try:
         lanes =[deque(maxlen=config.number_of_lanepoints), 
                 deque(maxlen=config.number_of_lanepoints), 
                 deque(maxlen=config.number_of_lanepoints), 
                 deque(maxlen=config.number_of_lanepoints)]
-        print_debug("DEBUG main() - after lane def")
-        game = CarlaGame(args, config, lanes)
+        game = CarlaGame(args, lanes)
         game.launch()
     except KeyboardInterrupt:
         raise KeyboardInterrupt("")

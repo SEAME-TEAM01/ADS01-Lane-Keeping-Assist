@@ -1,13 +1,12 @@
 # ------------------------------------------------------
-# Import base library
+# Import library
 import  os
 import  sys
 import  glob
-import  math
-import  pygame
-import  datetime
 from    abc \
         import  ABC, abstractmethod
+
+import  configs as config
 
 # ------------------------------------------------------
 # Find carla library
@@ -23,12 +22,14 @@ import  carla
 # ------------------------------------------------------
 # CarlaClient Class
 class   CarlaClient(ABC):
-    def __init__(self, args, config):
+    def __init__(self, args, lanes):
         """client, client-timeout, world, and map as args and configs"""
-        self.config = config
-        self.client = carla.Client(args.host, args.port)
-        self.client.set_timeout(self.config.CLIENT_TIMEOUT)
-        self.world = self.client.load_world(self.config.CARLA_TOWN)
+        self.args = args
+        self.lanes = lanes
+
+        self.client = carla.Client(self.args.host, self.args.port)
+        self.client.set_timeout(config.CLIENT_TIMEOUT)
+        self.world = self.client.load_world(config.CARLA_TOWN)
         self.map = self.world.get_map()
 
     @abstractmethod
