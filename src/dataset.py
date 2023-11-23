@@ -7,10 +7,10 @@ import multiprocessing
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
-BASE_DIR = "/content/drive/MyDrive/ads/dataset/TUSimple/train_set/"
+DATASET_PATH = "YOUR_DATASET_DIR"
 
 class LaneDataset():
-  def __init__(self, dataset_path=BASE_DIR, train=True, write=False, size=(512,256)):
+  def __init__(self, dataset_path=DATASET_PATH, train=True, write=False, size=(512,256)):
     self.dataset_path = dataset_path
     self.mode = 'train' if train else 'eval'
     self.write = write
@@ -75,7 +75,7 @@ class LaneDataset():
 
   def process_line(self, line, dataset_path):
     info = json.loads(line)
-    raw_path = os.path.join(BASE_DIR, info['raw_file'])
+    raw_path = os.path.join(DATASET_PATH, info['raw_file'])
     bin_path = raw_path.split('.jpg')[0] + '_bin.jpg'
     return raw_path, bin_path
 

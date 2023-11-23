@@ -8,7 +8,7 @@ import datetime
 from model import unet_model
 from dataset import LaneDataset
 
-BASE_DIR = '/content/drive/MyDrive/ads'
+SAVE_PATH = 'YOUR_SAVE_PATH'
 EPOCHS = 50
 
 Lane = LaneDataset(write=False)
@@ -17,7 +17,7 @@ model = unet_model(256, 512, 3)
 terminate = TerminateOnNaN()
 date_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 earlyStop = EarlyStopping(monitor='val_loss', patience=4)
-filepath = BASE_DIR +  '/output/' + date_time
+filepath = SAVE_PATH +  '/output/' + date_time
 checkpoint = ModelCheckpoint(filepath=os.path.join(filepath, 'unet-checkpoint.h5'),
                             monitor='val_loss',
                             verbose=1,
