@@ -9,3 +9,4 @@ sklearn-pandas==2.2.0
 matplotlib==3.7.1
 opencv-python==4.8.0.76
 tqdm==4.66.1
+python-dotenv

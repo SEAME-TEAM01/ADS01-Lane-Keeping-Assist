@@ -6,11 +6,12 @@ from multiprocessing import Pool
 import multiprocessing
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
+from dotenv import load_dotenv
 
-DATASET_PATH = "YOUR_DATASET_DIR"
+load_dotenv('.env')
 
 class LaneDataset():
-  def __init__(self, dataset_path=DATASET_PATH, train=True, write=False, size=(512,256)):
+  def __init__(self, dataset_path=os.path.join(os.getcwd(),os.getenv('DATASET_PATH')), train=True, write=False, size=(512,256)):
     self.dataset_path = dataset_path
     self.mode = 'train' if train else 'eval'
     self.write = write
@@ -63,19 +64,25 @@ class LaneDataset():
   def process_label_file(self, file_path):
     with open(file_path) as f:
         lines = f.readlines()
+    for line in tqdm(lines, desc="Processing lines"):
+      info = json.loads(line)
+      raw_path = os.path.join(self.dataset_path, info['raw_file'])
+      bin_path = raw_path.split('.jpg')[0] + '_bin.jpg'
+      self.X_train.append(raw_path)
+      self.y_train.append(bin_path)
 
-    num_workers = multiprocessing.cpu_count()
-    with Pool(processes=num_workers) as pool:
-      results = list(tqdm(pool.starmap(self.process_line, [(line, self.dataset_path) for line in lines]), total=len(lines), desc="Processing lines"))
+    # num_workers = multiprocessing.cpu_count()
+    # with Pool(processes=num_workers) as pool:
+    #   results = list(tqdm(pool.starmap(self.process_line, [(line, self.dataset_path) for line in lines]), total=len(lines), desc="Processing lines"))
 
-      for raw_path, bin_path in results:
-          self.X_train.append(raw_path)
-          self.y_train.append(bin_path)
+    #   for raw_path, bin_path in results:
+    #       self.X_train.append(raw_path)
+    #       self.y_train.append(bin_path)
 
 
   def process_line(self, line, dataset_path):
     info = json.loads(line)
-    raw_path = os.path.join(DATASET_PATH, info['raw_file'])
+    raw_path = os.path.join(dataset_path, info['raw_file'])
     bin_path = raw_path.split('.jpg')[0] + '_bin.jpg'
     return raw_path, bin_path
 
