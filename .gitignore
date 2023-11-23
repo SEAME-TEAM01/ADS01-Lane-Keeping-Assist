@@ -1,4 +1,5 @@
 # Custom
+log/*
 dataset/*
 carla/
 _out/
@@ -55,8 +56,8 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
-cover/
 
+cover/
 # Translations
 *.mo
 *.pot
