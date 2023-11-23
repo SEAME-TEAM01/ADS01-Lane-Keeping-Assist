@@ -1,0 +1,11 @@
+{
+  "script": "model.py",
+  "lossForBinary": "dice_loss",
+  "Metrics": "dice_coef",
+  "lossForInstance": "-",
+  "BatchSize": 32,
+  "Epochs": 50,
+  "LearningRate": "1e-4",
+  "Optimizer": "Adam",
+  "Memo": "one point I changed from previous version is model layers. I added layers for Dropout and BatchNormalization. But I cannot see so much improvement just a little bit improve though."
+}

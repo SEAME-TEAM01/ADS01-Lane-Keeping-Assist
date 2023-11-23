@@ -1,29 +1,37 @@
-from keras.models import load_model
-from keras.utils import custom_object_scope
-from focal_loss import BinaryFocalLoss
-from loss import instance_loss
-from utils import iou
-import numpy as np
+import tensorflow as tf
 import matplotlib.pyplot as plt
-import cv2
+import tensorflow.keras as keras
+from loss import dice_coef, dice_loss
 
-model_path = '/content/drive/MyDrive/ads/output/model/20231118-1700089152/lane4_lena_6_model.hdf5'
+MODEL_PATH = 'models/unet.h5'
 
-with custom_object_scope({'BinaryFocalLoss': BinaryFocalLoss, 'instance_loss': instance_loss, 'iou': iou}):
-    model = load_model(model_path)
+def display(display_list):
+    plt.figure(figsize=(15, 15))
 
-def predict(raw_img, input):
-  result = model.predict(input)
-  bin_output = result[0][0]
-  ins_output = result[1][0]
+    title = ['Input Image', 'True Mask', 'Predicted Mask']
 
-  y_coords, x_coords = np.where(bin_output[:,:,0])
-  lanes = [(x,y) for (x,y) in zip(x_coords, y_coords)]
+    for i in range(len(display_list)):
+        plt.subplot(1, len(display_list), i+1)
+        plt.title(title[i])
+        plt.imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
+        plt.axis('off')
+    plt.show()
 
-  lanes_array = [list(point) for point in lanes]
-  lanes_arr_np = np.array([lanes_array], dtype=np.int32)
+def create_mask(pred_mask):
+    mask = pred_mask[..., -1] >= 0.5
+    pred_mask[..., -1] = tf.where(mask, 1, 0)
+    # Return only first mask of batch
+    return pred_mask[0]
 
-  cv2.polylines(raw_img, lanes_arr_np, isClosed=False, color=(0, 255, 0), thickness=5)
+def show_predictions(model, dataset=None, num=1):
+    """
+    Displays the first image of each of the num batches
+    """
+    if dataset:
+        for image, mask in dataset.take(num):
+            pred_mask = model.predict(image)
+            display([image[0], mask[0], create_mask(pred_mask)])
 
-  plt.imshow(raw_img)
-  plt.show()
+custom_model = keras.models.load_model(MODEL_PATH, custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
+
+show_predictions(model = custom_model, dataset = Lane.batched_train_dataset, num = 6)

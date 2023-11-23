@@ -2,11 +2,11 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.layers import Input, Rescaling, Conv2D, MaxPooling2D, UpSampling2D, concatenate, Conv2DTranspose, BatchNormalization, Dropout, ReLU, Lambda, Activation
+from tensorflow.keras.layers import Input, Rescaling, Conv2D, MaxPooling2D, UpSampling2D, concatenate, Conv2DTranspose, BatchNormalization, Dropout
+from loss import dice_coef, dice_loss
 
 def encoder(inputs, outchan):
   x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(inputs)
-  x = Dropout(0.1)(x)
   x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(x)
 
   p = MaxPooling2D((2,2), strides=2)(x)
@@ -17,14 +17,13 @@ def decoder(inputs, skip_features, outchan):
 
   x = concatenate([x, skip_features])
   x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(x)
-  x = Dropout(0.2)(x)
   x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(x)
   return x
 
 def bottleneck(inputs, outchan):
   x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(inputs)
   x = Conv2D(outchan, (3,3), activation='relu', padding='same', kernel_initializer='he_normal')(x)
-  x = Dropout(0.5)(x)
+  x = Dropout(0.4)(x)
   return x
 
 def unet_model(HEIGHT, WIDTH, CHANNELS):
@@ -48,17 +47,7 @@ def unet_model(HEIGHT, WIDTH, CHANNELS):
 
   bin_seg = Conv2D(1, (1,1), activation='sigmoid', name='bin_seg')(c9_bin)
 
-  # Expansive Path inst
-  c6_ins = decoder(b1, c4, 512)
-  c7_ins = decoder(c6_ins, c3, 256)
-  c8_ins = decoder(c7_ins, c2, 128)
-  c9_ins = decoder(c8_ins, c1, 64)
-
-  c9_ins = BatchNormalization()(c9_ins)
-  c9_ins = ReLU()(c9_ins)
-  ins_seg = Conv2D(4, (1,1), activation='sigmoid', name='ins_seg')(c9_ins)
-
   model = Model(inputs=[input_tensor], outputs=[bin_seg])
 
-  model.compile(optimizer=Adam(learning_rate=1e-4), loss='binary_crossentropy', metrics=['accuracy'])
+  model.compile(optimizer=Adam(learning_rate=1e-4), loss=[dice_loss], metrics=[dice_coef])
   return model

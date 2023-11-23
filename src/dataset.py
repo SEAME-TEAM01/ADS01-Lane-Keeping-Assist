@@ -1,70 +1,25 @@
-# dataset.py
 import os
 import json
-import cv2
-from PIL import Image
 import numpy as np
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from multiprocessing import Pool
 import multiprocessing
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
 
-DATASET_DIR = 'dataset/TUSimple/train_set/'
-
-def process_line(args):
-  line, dataset_path, write, resize= args
-  info = json.loads(line)
-  img_path = os.path.join(dataset_path, info['raw_file'])
-  lanes = info['lanes']
-  h_samples = info['h_samples']
-
-  raw_img = cv2.imread(img_path)
-  raw_img = Image.fromarray(raw_img)
-  raw_img = raw_img.resize(resize)
-  original_img = np.array(raw_img, dtype=np.uint8)
-
-  if (write == True):
-    bin_mask = np.zeros_like(raw_img).astype(np.uint8)
-    ins_mask = np.zeros_like(raw_img).astype(np.uint8)
-
-    lanes = [[(x,y) for (x,y) in zip(lane, h_samples) if x >=0] for lane in lanes]
-
-    color_ins = [[70,70,70],[120,120,120],[20,20,20],[170,170,170]]
-    color_bin = [[255,255,255],[255,255,255],[255,255,255],[255,255,255]]
-
-    for i in range(len(lanes)):
-      if (len(lanes[i]) == 0):
-        continue
-      else:
-        cv2.polylines(ins_mask, np.int32([lanes[i]]), isClosed=False, color=color_ins[i], thickness=5)
-        cv2.polylines(bin_mask, np.int32([lanes[i]]), isClosed=False, color=color_bin[i], thickness=5)
-
-    cv2.imwrite(img_path.split('.jpg')[0]+ '_bin.jpg', bin_mask)
-    cv2.imwrite(img_path.split('.jpg')[0]+ '_ins.jpg', ins_mask)
-  else:
-    bin_mask = cv2.imread(img_path.split('.jpg')[0] + '_bin.jpg')
-    ins_mask = cv2.imread(img_path.split('.jpg')[0]+ '_ins.jpg')
-
-  bin_mask = Image.fromarray(bin_mask)
-  bin_mask = bin_mask.resize(resize)
-  label_bin = np.zeros([resize[1], resize[0]], dtype=np.uint8)
-  label_bin = np.array(bin_mask, dtype=np.uint8)
-  label_bin[label_bin != 0] = 1
-
-  ins_mask = Image.fromarray(ins_mask)
-  ins_mask = ins_mask.resize(resize)
-  ins_mask = np.array(ins_mask, dtype=np.uint8)
-  return original_img, label_bin, ins_mask
-
+BASE_DIR = "/content/drive/MyDrive/ads/dataset/TUSimple/train_set/"
 
 class LaneDataset():
-  def __init__(self, dataset_path=DATASET_DIR, train=True, size=(512,256)):
+  def __init__(self, dataset_path=BASE_DIR, train=True, write=False, size=(512,256)):
     self.dataset_path = dataset_path
     self.mode = 'train' if train else 'eval'
+    self.write = write
     self.image_size = size
-    self.data = []
-    self.bin_label = []
-    self.ins_label = []
+    self.X_train = []
+    self.y_train = []
+    self.BATCH_SIZE = 32
+    self.batched_train_dataset = None
+    self.batched_val_dataset = None
 
     if self.mode == 'train':
       label_files = [
@@ -78,27 +33,62 @@ class LaneDataset():
       ]
 
     for label_file in label_files:
-      self.process_label_file(label_file, write=False, resize=(512, 256))
-    self.data = np.array(self.data)
-    self.bin_label = np.array(self.bin_label)
-    self.ins_label = np.array(self.ins_label)
+      self.process_label_file(label_file)
 
-  def process_label_file(self, file_path, write, resize):
+    X_train, X_val, y_train, y_val = train_test_split(self.X_train, self.y_train, test_size=0.2, random_state=42)
+
+    X_train = tf.data.Dataset.from_tensor_slices(X_train)
+    y_train = tf.data.Dataset.from_tensor_slices(y_train)
+
+    X_val = tf.data.Dataset.from_tensor_slices(X_val)
+    y_val = tf.data.Dataset.from_tensor_slices(y_val)
+
+    self.X_train = X_train.map(self.preprocess_image)
+    self.y_train = y_train.map(self.preprocess_target)
+
+    self.X_val = X_val.map(self.preprocess_image)
+    self.y_val = y_val.map(self.preprocess_target)
+
+    train_dataset = tf.data.Dataset.zip((self.X_train, self.y_train))
+    val_dataset = tf.data.Dataset.zip((self.X_val, self.y_val))
+
+    batched_train_dataset = train_dataset.batch(self.BATCH_SIZE)
+    batched_val_dataset = val_dataset.batch(self.BATCH_SIZE)
+
+    AUTOTUNE = tf.data.experimental.AUTOTUNE
+    self.batched_train_dataset = batched_train_dataset.prefetch(buffer_size=AUTOTUNE)
+    self.batched_val_dataset = batched_val_dataset.prefetch(buffer_size=AUTOTUNE)
+
+
+  def process_label_file(self, file_path):
     with open(file_path) as f:
         lines = f.readlines()
 
     num_workers = multiprocessing.cpu_count()
-    pool = Pool(processes=num_workers)
+    with Pool(processes=num_workers) as pool:
+      results = list(tqdm(pool.starmap(self.process_line, [(line, self.dataset_path) for line in lines]), total=len(lines), desc="Processing lines"))
 
-    args = ((line, self.dataset_path, write, resize) for line in lines)
+      for raw_path, bin_path in results:
+          self.X_train.append(raw_path)
+          self.y_train.append(bin_path)
 
-    for result in tqdm(pool.imap(process_line, args, chunksize=1),
-                       total=len(lines),
-                       desc="Processing lines"):
-        processed_data, label_bin, ins_mask = result
-        self.data.append(processed_data)
-        self.bin_label.append(label_bin)
-        self.ins_label.append(ins_mask)
 
-    pool.close()
-    pool.join()
+  def process_line(self, line, dataset_path):
+    info = json.loads(line)
+    raw_path = os.path.join(BASE_DIR, info['raw_file'])
+    bin_path = raw_path.split('.jpg')[0] + '_bin.jpg'
+    return raw_path, bin_path
+
+  def preprocess_image(self, file_path):
+    img = tf.io.read_file(file_path)
+    img = tf.image.decode_jpeg(img, channels=3) # Returned as uint8
+    img = tf.image.convert_image_dtype(img, tf.float32)
+    img = tf.image.resize(img, [256, 512], method = 'nearest')
+    return img
+
+  def preprocess_target(self, file_path):
+    mask = tf.io.read_file(file_path)
+    mask = tf.image.decode_image(mask, expand_animations=False, dtype=tf.float32)
+    mask = tf.math.reduce_max(mask, axis=-1, keepdims=True)
+    mask = tf.image.resize(mask, [256, 512], method = 'nearest')
+    return mask
