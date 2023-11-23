@@ -1,5 +1,5 @@
 # Custom
-log/*
+log/
 dataset/*
 carla/
 _out/
