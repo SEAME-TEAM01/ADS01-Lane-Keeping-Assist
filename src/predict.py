@@ -106,6 +106,8 @@ def test_predict(image, model=None):
     """
     Predicts the current lane and steering angle
     """
+    lanes = []
+
     for img in image.take(10):
       img = tf.expand_dims(img, 0)
       pred_mask = model.predict(img)
@@ -114,7 +116,8 @@ def test_predict(image, model=None):
       # draw_lanes(lanes=lanes_coords)
       # curr_lanes = extract_current_lanes(lanes)
       # draw_lanes(left_lane=curr_lanes[0], right_lane=curr_lanes[1])
-    return lanes_coords
+      lanes.append(lanes_coords)
+    return lanes
 
 # np.set_printoptions(threshold=np.inf)
 # test_predict(SAMPLE_IMAGES, model)

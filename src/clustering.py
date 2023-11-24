@@ -42,3 +42,16 @@ def lanes_to_dataframe(lanes):
     df = df.sort_values(by='y', ascending=False)
     df = df.reset_index(drop=True)
     return df
+
+def test():
+  Lane = LaneDataset(train=False)
+  SAMPLE_IMAGES = Lane.X_train
+  model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
+  lanes = test_predict(SAMPLE_IMAGES, model)
+  for lane in lanes:
+    df = HDBSCAN_cluster(lane)
+    plt.scatter(df['x'], df['y'], c=df['cluster'], cmap='rainbow')
+    plt.show()
+    
+
+test()
