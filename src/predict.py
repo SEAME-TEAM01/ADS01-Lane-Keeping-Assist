@@ -31,34 +31,36 @@ def extract_current_lanes(lanes, img_width=512, img_height=256):
     - Tuple containing two lists of coordinates, one for the closest left lane and one for the closest right lane.
     """
     center_x = img_width // 2
-    height = img_height // 2
 
-    closest_left_lane = {}
-    closest_right_lane = {}
+    closest_left_lane = [None] * img_height
+    closest_right_lane = [None] * img_height
 
-    min_left_dist = img_width
-    min_right_dist = img_width
+    min_left_dists = [img_width] * img_height
+    min_right_dists = [img_width] * img_height
 
-    for y in range(height, img_height):
-        y_level_coords = [coord for coord in lanes if coord[1] == y]
+    lanes_by_y = {}
+    for x, y in lanes:
+        if y in lanes_by_y:
+            lanes_by_y[y].append(x)
+        else:
+            lanes_by_y[y] = [x]
 
-        for x, _ in y_level_coords:
+    for y in range(img_height//2, img_height):
+        if y not in lanes_by_y: continue
+        for x in lanes_by_y[y]:
             if x < center_x:
                 dist_to_center = center_x - x
-                if dist_to_center < min_left_dist:
-                    min_left_dist = dist_to_center
-                    closest_left_lane[y] = x
+                if dist_to_center < min_left_dists[y]:
+                    min_left_dists[y] = dist_to_center
+                    closest_left_lane[y] = (x, y)
             else:
                 dist_to_center = x - center_x
-                if dist_to_center < min_right_dist:
-                    min_right_dist = dist_to_center
-                    closest_right_lane[y] = x
+                if dist_to_center < min_right_dists[y]:
+                    min_right_dists[y] = dist_to_center
+                    closest_right_lane[y] = (x, y)
 
-        min_left_dist = img_width
-        min_right_dist = img_width
-
-    closest_left_lane = sorted([(x, y) for y, x in closest_left_lane.items()])
-    closest_right_lane = sorted([(x, y) for y, x in closest_right_lane.items()])
+    closest_left_lane = [coord for coord in closest_left_lane if coord is not None]
+    closest_right_lane = [coord for coord in closest_right_lane if coord is not None]
 
     return closest_left_lane, closest_right_lane
 
