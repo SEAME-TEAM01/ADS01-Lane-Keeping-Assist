@@ -18,11 +18,50 @@ def create_mask(pred_mask):
     pred_mask[..., -1] = tf.where(mask, 1, 0)
     return pred_mask[0]
 
-def extract_current_lanes(pred_mask):
+def extract_current_lanes(lanes, img_width=512, img_height=256):
     """
-    Extracts the current lanes from the predicted mask
+    Extracts the closest left and right lane coordinates from a list of lane coordinates.
+
+    Args:
+    - lanes: List of (x, y) tuples representing lane coordinates.
+    - img_width: The width of the image.
+    - img_height: The height of the image.
+
+    Returns:
+    - Tuple containing two lists of coordinates, one for the closest left lane and one for the closest right lane.
     """
-    return pred_mask
+    center_x = img_width // 2
+    height = img_height // 2
+
+    closest_left_lane = {}
+    closest_right_lane = {}
+
+    min_left_dist = img_width
+    min_right_dist = img_width
+
+    for y in range(height, img_height):
+        y_level_coords = [coord for coord in lanes if coord[1] == y]
+
+        for x, _ in y_level_coords:
+            if x < center_x:
+                dist_to_center = center_x - x
+                if dist_to_center < min_left_dist:
+                    min_left_dist = dist_to_center
+                    closest_left_lane[y] = x
+            else:
+                dist_to_center = x - center_x
+                if dist_to_center < min_right_dist:
+                    min_right_dist = dist_to_center
+                    closest_right_lane[y] = x
+
+        min_left_dist = img_width
+        min_right_dist = img_width
+
+    closest_left_lane = sorted([(x, y) for y, x in closest_left_lane.items()])
+    closest_right_lane = sorted([(x, y) for y, x in closest_right_lane.items()])
+
+    return closest_left_lane, closest_right_lane
+
 
 
 def calculate_steer_angle():
@@ -41,29 +80,40 @@ def mask_to_coordinates(mask):
     coords = list(zip(x, y))
     return coords
 
-def draw_lanes(lanes):
+def draw_lanes(lanes=None, left_lane=None, right_lane=None):
   """
   Draws the lanes on the image
   """
   background = np.zeros((256, 512), dtype=np.uint8)
-  for x, y in lanes:
-    background[y, x] = 255
+  if (left_lane is not None) and (right_lane is not None):
+    for x, y in left_lane:
+      background[y, x] = 255
+    for x, y in right_lane:
+      background[y, x] = 255
+
+  if (left_lane is None) and (right_lane is None):
+    background = np.zeros((256, 512), dtype=np.uint8)
+    for x, y in lanes:
+      background[y, x] = 255
   plt.imshow(background)
   plt.show()
-
   return background
 
 
-def predict(image):
+def test_predict(image):
     """
     Predicts the current lane and steering angle
     """
     for img in image.take(1):
+      plt.imshow(img)
+      plt.show()
       img = tf.expand_dims(img, 0)
       pred_mask = model.predict(img)
       mask = create_mask(pred_mask)
       lanes = mask_to_coordinates(mask)
-      curr_lanes = extract_current_lanes(mask)
+      draw_lanes(lanes)
+      curr_lanes = extract_current_lanes(lanes)
+      draw_lanes(left_lane=curr_lanes[0], right_lane=curr_lanes[1])
 
 np.set_printoptions(threshold=np.inf)
-predict(SAMPLE_IMAGES)
+test_predict(SAMPLE_IMAGES)
