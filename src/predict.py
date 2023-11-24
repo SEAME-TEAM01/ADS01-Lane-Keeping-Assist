@@ -8,10 +8,10 @@ from dataset import LaneDataset
 from dotenv import load_dotenv
 load_dotenv('.env')
 
-Lane = LaneDataset(train=False)
-SAMPLE_IMAGES = Lane.X_train
+# Lane = LaneDataset(train=True)
+# SAMPLE_IMAGES = Lane.X_train
 
-model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
+# model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
 
 def create_mask(pred_mask):
     mask = pred_mask[..., -1] >= 0.5
@@ -102,20 +102,19 @@ def draw_lanes(lanes=None, left_lane=None, right_lane=None):
   return background
 
 
-def test_predict(image):
+def test_predict(image, model=None):
     """
     Predicts the current lane and steering angle
     """
-    for img in image.take(1):
-      plt.imshow(img)
-      plt.show()
+    for img in image.take(10):
       img = tf.expand_dims(img, 0)
       pred_mask = model.predict(img)
       mask = create_mask(pred_mask)
-      lanes = mask_to_coordinates(mask)
-      draw_lanes(lanes)
-      curr_lanes = extract_current_lanes(lanes)
-      draw_lanes(left_lane=curr_lanes[0], right_lane=curr_lanes[1])
+      lanes_coords = mask_to_coordinates(mask)
+      # draw_lanes(lanes=lanes_coords)
+      # curr_lanes = extract_current_lanes(lanes)
+      # draw_lanes(left_lane=curr_lanes[0], right_lane=curr_lanes[1])
+    return lanes_coords
 
-np.set_printoptions(threshold=np.inf)
-test_predict(SAMPLE_IMAGES)
+# np.set_printoptions(threshold=np.inf)
+# test_predict(SAMPLE_IMAGES, model)
