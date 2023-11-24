@@ -1,7 +1,9 @@
 # Custom
+log/
 dataset/*
 carla/
 _out/
+log/*/summary.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -54,8 +56,8 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
-cover/
 
+cover/
 # Translations
 *.mo
 *.pot
