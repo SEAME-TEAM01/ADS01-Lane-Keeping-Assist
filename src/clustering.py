@@ -8,7 +8,7 @@ from loss import dice_coef, dice_loss
 import tensorflow.keras as keras
 from dataset import LaneDataset
 from dotenv import load_dotenv
-from predict import test_predict
+# from predict import test_predict
 load_dotenv('.env')
 
 def HDBSCAN_cluster(lanes):
@@ -19,12 +19,6 @@ def HDBSCAN_cluster(lanes):
   """
 
   lanes_df = lanes_to_dataframe(lanes)
-
-  scaler = MinMaxScaler()
-  scaler.fit(lanes_df[['x']])
-  lanes_df['x'] = scaler.transform(lanes_df[['x']])
-  scaler.fit(lanes_df[['y']])
-  lanes_df['y'] = scaler.transform(lanes_df[['y']])
 
   cluster = hdbscan.HDBSCAN(min_cluster_size=10)
   cluster_labels = cluster.fit_predict(lanes_df)
@@ -47,11 +41,10 @@ def test():
   Lane = LaneDataset(train=False)
   SAMPLE_IMAGES = Lane.X_train
   model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
-  lanes = test_predict(SAMPLE_IMAGES, model)
+  # lanes = test_predict(SAMPLE_IMAGES, model)
+  lanes =[]
   for lane in lanes:
     df = HDBSCAN_cluster(lane)
+    print(df.head(n=50))
     plt.scatter(df['x'], df['y'], c=df['cluster'], cmap='rainbow')
     plt.show()
-    
-
-test()
