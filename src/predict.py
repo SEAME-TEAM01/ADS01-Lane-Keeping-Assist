@@ -39,10 +39,22 @@ def extract_current_lanes(df_lanes=None, width=512):
   return left_lane_cluster, right_lane_cluster
 
 
-def calculate_steer_angle():
+def calculate_steer_angle(left_lane=None, right_lane=None, width=512, height=256):
   """
   Calculates the steering angle based on the predicted mask
   """
+  mid = width // 2
+  left_mid_x = left_lane['x'].mean()
+  right_mid_x = right_lane['x'].mean()
+
+  x_offset = (left_mid_x + right_mid_x) / 2 - mid
+  y_offset = int(height * 0.6)
+
+  angle_to_mid_radian = np.arctan(x_offset / y_offset)
+  angle_to_mid_deg = np.degrees(angle_to_mid_radian)
+  steering_angle = angle_to_mid_deg + 90
+  return steering_angle
+
 
 def mask_to_coordinates(mask):
   """
@@ -85,7 +97,8 @@ def predict(image, model=None):
   df_lanes = HDBSCAN_cluster(lanes_coords)
   left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes)
   draw_lanes(left_lane=left_lane, right_lane=right_lane)
-  return left_lane, right_lane
+  steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
+  return steering_angle
 
 Lane = LaneDataset(train=True)
 SAMPLE_IMAGES = Lane.X_train
