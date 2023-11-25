@@ -74,24 +74,6 @@ def draw_lanes(lanes=None, left_lane=None, right_lane=None):
   plt.show()
   return background
 
-
-def test_predict(image, model=None):
-  """
-
-  """
-  lanes = []
-
-  for img in image.take(2):
-    img = tf.expand_dims(img, 0)
-    pred_mask = model.predict(img)
-    mask = create_mask(pred_mask)
-    lanes_coords = mask_to_coordinates(mask)
-    # draw_lanes(lanes=lanes_coords)
-    # curr_lanes = extract_current_lanes(lanes)
-    # draw_lanes(left_lane=curr_lanes[0], right_lane=curr_lanes[1])
-    lanes.append(lanes_coords)
-  return lanes
-
 def predict(image, model=None):
   """
   Predict Steering Angle from Live Image
@@ -100,10 +82,10 @@ def predict(image, model=None):
   pred_mask = model.predict(img)
   mask = create_mask(pred_mask)
   lanes_coords = mask_to_coordinates(mask)
-  draw_lanes(lanes=lanes_coords)
   df_lanes = HDBSCAN_cluster(lanes_coords)
   left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes)
   draw_lanes(left_lane=left_lane, right_lane=right_lane)
+  return left_lane, right_lane
 
 Lane = LaneDataset(train=True)
 SAMPLE_IMAGES = Lane.X_train
