@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import cv2
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import tensorflow.keras as keras
@@ -86,6 +87,42 @@ def draw_lanes(lanes=None, left_lane=None, right_lane=None):
   plt.show()
   return background
 
+
+def display_heading_line(image, left_lane, right_lane, steering_angle):
+    """
+    Draws heading line on the image based on left and right lane coordinates and steering angle.
+
+    Args:
+    - image: A TensorFlow EagerTensor representing the image.
+    - left_lane: Coordinates of the left lane.
+    - right_lane: Coordinates of the right lane.
+    - steering_angle: The calculated steering angle.
+
+    Returns:
+    - Image tensor with the heading line drawn.
+    """
+    image_with_line = np.copy(image)
+
+    for x, y in zip(left_lane['x'], left_lane['y']):
+      image_with_line[y, x] = 255
+    for x, y in zip(right_lane['x'], right_lane['y']):
+      image_with_line[y, x] = 255
+
+    height, width = image_with_line.shape[:2]
+    center_x, center_y = width // 2, height
+    line_length = height // 3  # Adjust the length of the heading line as needed
+    angle_radians = np.deg2rad(180 - steering_angle)  # Convert to radians
+
+    # Calculate end point of the heading line
+    end_x = int(center_x + line_length * np.cos(angle_radians))
+    end_y = int(center_y - line_length * np.sin(angle_radians))
+
+    image_with_line = cv2.line(image_with_line, (center_x, center_y), (end_x, end_y), (0, 0, 255), 3)
+
+    plt.imshow(image_with_line)
+    plt.show()
+
+
 def predict(image, model=None):
   """
   Predict Steering Angle from Live Image
@@ -95,13 +132,15 @@ def predict(image, model=None):
   mask = create_mask(pred_mask)
   lanes_coords = mask_to_coordinates(mask)
   df_lanes = HDBSCAN_cluster(lanes_coords)
-  left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes)
+  left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes) # return dataframe x, y coordinates
   draw_lanes(left_lane=left_lane, right_lane=right_lane)
   steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
+  print(steering_angle)
+  display_heading_line(image, left_lane, right_lane, steering_angle)
   return steering_angle
 
 Lane = LaneDataset(train=True)
 SAMPLE_IMAGES = Lane.X_train
 model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
-for img in SAMPLE_IMAGES.take(5):
+for img in SAMPLE_IMAGES.take(10):
   predict(img, model)
