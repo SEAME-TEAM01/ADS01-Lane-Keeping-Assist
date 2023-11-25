@@ -1,4 +1,5 @@
 # Custom
+model/model.hdf5
 log/
 dataset/*
 carla/
