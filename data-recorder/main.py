@@ -7,8 +7,8 @@ from    utils.prints \
         import  *
 from    utils.args \
         import  load_args_record
-from    classes.CarlaGame \
-        import  CarlaGame
+from    classes.CarlaDataRecorder \
+        import  CarlaDataRecorder
 
 # ------------------------------------------------------
 # Import Library
@@ -37,7 +37,7 @@ def main():
                 deque(maxlen=config.number_of_lanepoints), 
                 deque(maxlen=config.number_of_lanepoints), 
                 deque(maxlen=config.number_of_lanepoints)]
-        game = CarlaGame(args, lanes)
+        game = CarlaDataRecorder(args, lanes)
         game.launch()
     except KeyboardInterrupt:
         raise KeyboardInterrupt("")

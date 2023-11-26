@@ -22,10 +22,9 @@ import  carla
 # ------------------------------------------------------
 # CarlaClient Class
 class   CarlaClient(ABC):
-    def __init__(self, args, lanes):
+    def __init__(self, args):
         """client, client-timeout, world, and map as args and configs"""
         self.args = args
-        self.lanes = lanes
 
         self.client = carla.Client(self.args.host, self.args.port)
         self.client.set_timeout(config.CLIENT_TIMEOUT)

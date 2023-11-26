@@ -5,7 +5,7 @@ import  argparse
 
 # ------------------------------------------------------
 # Args Loaders
-def load_args_record():
+def load_args():
     args = argparse.ArgumentParser(description='Data-recorder')
 
     # application default
