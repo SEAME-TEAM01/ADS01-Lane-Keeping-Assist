@@ -6,9 +6,9 @@ from    utils.colors \
 from    utils.prints \
         import  *
 from    utils.args \
-        import  load_args
-from    classes.CarlaGame \
-        import  CarlaGame
+        import  load_args_record
+from    classes.CarlaDataRecorder \
+        import  CarlaDataRecorder
 
 # ------------------------------------------------------
 # Import Library
@@ -28,7 +28,7 @@ except  ImportError as exception:
 # ------------------------------------------------------
 # Main function
 def main():
-    args = load_args()
+    args = load_args_record()
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(format="%(levelname)s: %(message)s", level=log_level)
 
@@ -37,7 +37,7 @@ def main():
                 deque(maxlen=config.number_of_lanepoints), 
                 deque(maxlen=config.number_of_lanepoints), 
                 deque(maxlen=config.number_of_lanepoints)]
-        game = CarlaGame(args, lanes)
+        game = CarlaDataRecorder(args, lanes)
         game.launch()
     except KeyboardInterrupt:
         raise KeyboardInterrupt("")

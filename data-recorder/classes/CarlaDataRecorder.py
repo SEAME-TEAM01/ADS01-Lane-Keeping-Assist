@@ -44,8 +44,8 @@ except  IndexError:
 import  carla
 
 # ------------------------------------------------------
-# CarlaGame Class
-class   CarlaGame(CarlaClient):
+# CarlaDataRecorder Class
+class   CarlaDataRecorder(CarlaClient):
     def __init__(self, args, lanes):
         # client, client-timeout, world, and map as args and configs
         super().__init__(args)
