@@ -44,14 +44,12 @@ except  IndexError:
 import  carla
 
 # ------------------------------------------------------
-# Import Custom Libraries
-
-# ------------------------------------------------------
 # CarlaGame Class
 class   CarlaGame(CarlaClient):
     def __init__(self, args, lanes):
         # client, client-timeout, world, and map as args and configs
-        super().__init__(args, lanes)
+        super().__init__(args)
+        self.lanes          = lanes
         
         # pygame setting
         pygame.init()
