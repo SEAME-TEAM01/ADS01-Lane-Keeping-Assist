@@ -39,6 +39,35 @@ def extract_current_lanes(df_lanes=None, width=512):
 
   return left_lane_cluster, right_lane_cluster
 
+def calculate_quadratic_coefficients(lane):
+    """
+    Fits a quadratic polynomial to the lane points and returns the coefficients.
+    """
+    # Fit a 2nd degree polynomial to the lane points
+    poly_fit = np.polyfit(lane['y'], lane['x'], 2)
+    return poly_fit
+
+def calculate_ideal_path(left_lane=None, right_lane=None, height=256):
+  """
+  Calculates the ideal path from the left and right lanes
+  """
+  ideal_path = []
+
+  if (left_lane is not None) and (right_lane is not None):
+    return []
+
+  left_fit = calculate_quadratic_coefficients(left_lane)
+  right_fit = calculate_quadratic_coefficients(right_lane)
+
+  ideal_path = (left_fit + right_fit) / 2
+
+  y_vals = np.arrange(0, height)
+  ideal_path_x = ideal_path[0] * y_vals ** 2 + ideal_path[1] * y_vals + ideal_path[2]
+
+  ideal_path = list(zip(ideal_path_x, y_vals))
+
+  return ideal_path
+
 
 def calculate_steer_angle(left_lane=None, right_lane=None, width=512, height=256):
   """
@@ -133,9 +162,9 @@ def predict(image, model=None):
   lanes_coords = mask_to_coordinates(mask)
   df_lanes = HDBSCAN_cluster(lanes_coords)
   left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes) # return dataframe x, y coordinates
-  draw_lanes(left_lane=left_lane, right_lane=right_lane)
+  path_points = calculate_ideal_path(left_lane, right_lane)
+  draw_lanes(lanes=path_points)
   steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
-  print(steering_angle)
   display_heading_line(image, left_lane, right_lane, steering_angle)
   return steering_angle
 
