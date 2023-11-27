@@ -51,9 +51,7 @@ def calculate_ideal_path(left_lane=None, right_lane=None, height=256):
   """
   Calculates the ideal path from the left and right lanes
   """
-  ideal_path = []
-
-  if (left_lane is not None) and (right_lane is not None):
+  if (left_lane is None) and (right_lane is None):
     return []
 
   left_fit = calculate_quadratic_coefficients(left_lane)
@@ -61,8 +59,9 @@ def calculate_ideal_path(left_lane=None, right_lane=None, height=256):
 
   ideal_path = (left_fit + right_fit) / 2
 
-  y_vals = np.arrange(0, height)
-  ideal_path_x = ideal_path[0] * y_vals ** 2 + ideal_path[1] * y_vals + ideal_path[2]
+  lane_y_min = left_lane['y'].min()
+  y_vals = np.arange(lane_y_min, height, 1)
+  ideal_path_x = (ideal_path[0] * y_vals ** 2 + ideal_path[1] * y_vals + ideal_path[2]).astype(np.int32)
 
   ideal_path = list(zip(ideal_path_x, y_vals))
 
@@ -97,11 +96,11 @@ def mask_to_coordinates(mask):
   coords = list(zip(x, y))
   return coords
 
-def draw_lanes(lanes=None, left_lane=None, right_lane=None):
+def draw_lanes(lanes=None, left_lane=None, right_lane=None, image=None):
   """
   Draws the lanes on the image
   """
-  background = np.zeros((256, 512), dtype=np.uint8)
+  background = image
   if lanes is None:
     for x, y in zip(left_lane['x'], left_lane['y']):
       background[y, x] = 255
@@ -109,7 +108,6 @@ def draw_lanes(lanes=None, left_lane=None, right_lane=None):
       background[y, x] = 255
 
   if (left_lane is None) and (right_lane is None):
-    background = np.zeros((256, 512), dtype=np.uint8)
     for x, y in lanes:
       background[y, x] = 255
   plt.imshow(background)
@@ -162,14 +160,14 @@ def predict(image, model=None):
   lanes_coords = mask_to_coordinates(mask)
   df_lanes = HDBSCAN_cluster(lanes_coords)
   left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes) # return dataframe x, y coordinates
-  path_points = calculate_ideal_path(left_lane, right_lane)
-  draw_lanes(lanes=path_points)
-  steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
-  display_heading_line(image, left_lane, right_lane, steering_angle)
-  return steering_angle
+  path_points = calculate_ideal_path(left_lane=left_lane, right_lane=right_lane)
+  draw_lanes(lanes=path_points, image=np.copy(image))
+  # steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
+  # display_heading_line(image, left_lane, right_lane, steering_angle)
+  return None
 
 Lane = LaneDataset(train=True)
 SAMPLE_IMAGES = Lane.X_train
 model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
-for img in SAMPLE_IMAGES.take(10):
+for img in SAMPLE_IMAGES.take(3):
   predict(img, model)
