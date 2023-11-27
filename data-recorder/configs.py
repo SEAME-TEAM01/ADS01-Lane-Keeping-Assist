@@ -9,6 +9,7 @@ CARLA_TOWN = "Town03_Opt"
 WORKER_THREADS = 1
 CLIENT_TIMEOUT = 30.0
 LANE_DETECTION_TIMEOUT = 30.0
+NEIGHTBOR_VEHICLES_MODE = False
 
 # Save images and labels on disk
 isSaving = True
