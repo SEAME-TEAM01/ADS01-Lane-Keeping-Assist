@@ -194,12 +194,12 @@ class   CarlaDataRecorder(CarlaClient):
         
                 # Advance the simulation and wait for the data.
         snapshot, image_rgb, image_semseg = self.sync_mode.tick(timeout=1.0)
-        print(snapshot)
+
         # Move own vehicle to the next waypoint
         new_waypoint = self.vehicle_manager.move_agent(self.vehicle, self.waypoint_list)
         
-        # Move neighbor vehicles with the same speed as the own vehicle
-        self.vehicle_manager.move_vehicles(self.waypoint_list)
+        # # Move neighbor vehicles with the same speed as the own vehicle
+        # self.vehicle_manager.move_vehicles(self.waypoint_list)
         
         # Detect if junction is ahead
         self.vehicle_manager.detect_junction(self.waypoint_list)
@@ -271,8 +271,6 @@ class   CarlaDataRecorder(CarlaClient):
         self.actor_list.append(self.camera_semseg)
 
         self.reset_vehicle_position()
-
-        self.vehicle_manager.spawn_vehicles(self.world)
 
     def launch(self):
         try:

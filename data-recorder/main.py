@@ -6,7 +6,7 @@ from    utils.colors \
 from    utils.prints \
         import  *
 from    utils.args \
-        import  load_args_record
+        import  load_args
 from    classes.CarlaDataRecorder \
         import  CarlaDataRecorder
 
@@ -28,7 +28,7 @@ except  ImportError as exception:
 # ------------------------------------------------------
 # Main function
 def main():
-    args = load_args_record()
+    args = load_args()
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(format="%(levelname)s: %(message)s", level=log_level)
 
