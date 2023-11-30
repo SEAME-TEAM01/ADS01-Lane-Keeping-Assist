@@ -115,7 +115,7 @@ def draw_lanes(lanes=None, left_lane=None, right_lane=None, image=None):
   return background
 
 
-def display_heading_line(image, left_lane, right_lane, steering_angle):
+def display_heading_line(image, left_lane, right_lane, path_points):
     """
     Draws heading line on the image based on left and right lane coordinates and steering angle.
 
@@ -135,17 +135,11 @@ def display_heading_line(image, left_lane, right_lane, steering_angle):
     for x, y in zip(right_lane['x'], right_lane['y']):
       image_with_line[y, x] = 255
 
-    height, width = image_with_line.shape[:2]
-    center_x, center_y = width // 2, height
-    line_length = height // 3  # Adjust the length of the heading line as needed
-    angle_radians = np.deg2rad(180 - steering_angle)  # Convert to radians
+    x_coords, y_coords = zip(*path_points)
+    x_coords_selected = x_coords[::10]
+    y_coords_selected = y_coords[::10]
 
-    # Calculate end point of the heading line
-    end_x = int(center_x + line_length * np.cos(angle_radians))
-    end_y = int(center_y - line_length * np.sin(angle_radians))
-
-    image_with_line = cv2.line(image_with_line, (center_x, center_y), (end_x, end_y), (0, 0, 255), 3)
-
+    plt.plot(x_coords_selected, y_coords_selected, 'ro', markersize=5, linewidth=2, color='green')
     plt.imshow(image_with_line)
     plt.show()
 
@@ -161,7 +155,7 @@ def predict(image, model=None):
   df_lanes = HDBSCAN_cluster(lanes_coords)
   left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes) # return dataframe x, y coordinates
   path_points = calculate_ideal_path(left_lane=left_lane, right_lane=right_lane)
-  draw_lanes(lanes=path_points, image=np.copy(image))
+  display_heading_line(image, left_lane, right_lane, path_points)
   # steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
   # display_heading_line(image, left_lane, right_lane, steering_angle)
   return None
