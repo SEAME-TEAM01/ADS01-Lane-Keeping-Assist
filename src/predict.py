@@ -1,4 +1,5 @@
 import os
+import math
 import numpy as np
 import cv2
 import tensorflow as tf
@@ -84,6 +85,33 @@ def calculate_steer_angle(left_lane=None, right_lane=None, width=512, height=256
   steering_angle = angle_to_mid_deg + 90
   return steering_angle
 
+def pure_pursuit(reference_path=None, width=512, height=256):
+  """
+  Calculates the steering angle based on the reference path
+  """
+
+  if reference_path is None:
+    return None
+
+  vehicle_position = (width // 2, height)
+  lookahead_distance = 100 # should be dynamic based on speed
+
+  lookahead_point = None
+  for point in reversed(reference_path):
+    if math.hypot(point[0] - vehicle_position[0], vehicle_position[1] - point[1]) > lookahead_distance:
+      lookahead_point = point
+      break
+
+  print(lookahead_point)
+  if lookahead_point is None:
+    return None
+
+  angle_to_lookahead_radian = np.arctan2(vehicle_position[1] - lookahead_point[1], lookahead_point[0] - vehicle_position[0])
+  steering_angle = np.degrees(angle_to_lookahead_radian)
+  steering_angle = min(max(steering_angle, 0), 180)
+
+  return steering_angle
+
 
 def mask_to_coordinates(mask):
   """
@@ -96,26 +124,8 @@ def mask_to_coordinates(mask):
   coords = list(zip(x, y))
   return coords
 
-def draw_lanes(lanes=None, left_lane=None, right_lane=None, image=None):
-  """
-  Draws the lanes on the image
-  """
-  background = image
-  if lanes is None:
-    for x, y in zip(left_lane['x'], left_lane['y']):
-      background[y, x] = 255
-    for x, y in zip(right_lane['x'], right_lane['y']):
-      background[y, x] = 255
 
-  if (left_lane is None) and (right_lane is None):
-    for x, y in lanes:
-      background[y, x] = 255
-  plt.imshow(background)
-  plt.show()
-  return background
-
-
-def display_heading_line(image, left_lane, right_lane, path_points):
+def display_lines(image, left_lane, right_lane, path_points):
     """
     Draws heading line on the image based on left and right lane coordinates and steering angle.
 
@@ -139,7 +149,7 @@ def display_heading_line(image, left_lane, right_lane, path_points):
     x_coords_selected = x_coords[::10]
     y_coords_selected = y_coords[::10]
 
-    plt.plot(x_coords_selected, y_coords_selected, 'ro', markersize=5, linewidth=2, color='green')
+    plt.plot(x_coords_selected, y_coords_selected, 'o', markersize=5, linewidth=2, color='green')
     plt.imshow(image_with_line)
     plt.show()
 
@@ -155,10 +165,10 @@ def predict(image, model=None):
   df_lanes = HDBSCAN_cluster(lanes_coords)
   left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes) # return dataframe x, y coordinates
   path_points = calculate_ideal_path(left_lane=left_lane, right_lane=right_lane)
-  display_heading_line(image, left_lane, right_lane, path_points)
-  # steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
-  # display_heading_line(image, left_lane, right_lane, steering_angle)
-  return None
+  steering_angle = pure_pursuit(reference_path=path_points)
+  print(steering_angle)
+  display_lines(image, left_lane, right_lane, path_points)
+  return steering_angle
 
 Lane = LaneDataset(train=True)
 SAMPLE_IMAGES = Lane.X_train
