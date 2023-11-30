@@ -102,15 +102,12 @@ def pure_pursuit(reference_path=None, width=512, height=256):
       lookahead_point = point
       break
 
-  print(lookahead_point)
   if lookahead_point is None:
     return None
 
   angle_to_lookahead_radian = np.arctan2(vehicle_position[1] - lookahead_point[1], lookahead_point[0] - vehicle_position[0])
-  steering_angle = np.degrees(angle_to_lookahead_radian)
-  steering_angle = min(max(steering_angle, 0), 180)
 
-  return steering_angle
+  return angle_to_lookahead_radian
 
 
 def mask_to_coordinates(mask):
@@ -124,8 +121,20 @@ def mask_to_coordinates(mask):
   coords = list(zip(x, y))
   return coords
 
+def plot_heading_line(image, steering_angle, width=512, height=256):
+  """
 
-def display_lines(image, left_lane, right_lane, path_points):
+  """
+  center_x, center_y = width // 2, height
+  line_length = height // 3
+  end_x = int(center_x + line_length * np.cos(steering_angle))
+  end_y = int(center_y - line_length * np.sin(steering_angle))
+  image = cv2.line(image, (center_x, center_y), (end_x, end_y), (0, 255, 0), 2)
+  plt.imshow(image)
+  plt.show()
+
+
+def plot_lines(image, left_lane, right_lane, path_points, plot=False):
     """
     Draws heading line on the image based on left and right lane coordinates and steering angle.
 
@@ -151,7 +160,9 @@ def display_lines(image, left_lane, right_lane, path_points):
 
     plt.plot(x_coords_selected, y_coords_selected, 'o', markersize=5, linewidth=2, color='green')
     plt.imshow(image_with_line)
-    plt.show()
+    if (plot):
+      plt.show()
+    return image_with_line
 
 
 def predict(image, model=None):
@@ -167,11 +178,12 @@ def predict(image, model=None):
   path_points = calculate_ideal_path(left_lane=left_lane, right_lane=right_lane)
   steering_angle = pure_pursuit(reference_path=path_points)
   print(steering_angle)
-  display_lines(image, left_lane, right_lane, path_points)
+  image = plot_lines(image, left_lane, right_lane, path_points)
+  plot_heading_line(image, steering_angle)
   return steering_angle
 
 Lane = LaneDataset(train=True)
 SAMPLE_IMAGES = Lane.X_train
 model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
-for img in SAMPLE_IMAGES.take(3):
+for img in SAMPLE_IMAGES.take(5):
   predict(img, model)
