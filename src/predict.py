@@ -68,23 +68,6 @@ def calculate_ideal_path(left_lane=None, right_lane=None, height=256):
 
   return ideal_path
 
-
-def calculate_steer_angle(left_lane=None, right_lane=None, width=512, height=256):
-  """
-  Calculates the steering angle based on the predicted mask
-  """
-  mid = width // 2
-  left_mid_x = left_lane['x'].mean()
-  right_mid_x = right_lane['x'].mean()
-
-  x_offset = (left_mid_x + right_mid_x) / 2 - mid
-  y_offset = int(height * 0.6)
-
-  angle_to_mid_radian = np.arctan(x_offset / y_offset)
-  angle_to_mid_deg = np.degrees(angle_to_mid_radian)
-  steering_angle = angle_to_mid_deg + 90
-  return steering_angle
-
 def pure_pursuit(reference_path=None, width=512, height=256):
   """
   Calculates the steering angle based on the reference path
@@ -98,15 +81,16 @@ def pure_pursuit(reference_path=None, width=512, height=256):
 
   lookahead_point = None
   for point in reversed(reference_path):
-    if math.hypot(point[0] - vehicle_position[0], vehicle_position[1] - point[1]) > lookahead_distance:
+    distance = vehicle_position[1] - point[1] # should be Euclidean Algorithm but this doesn't work sometimes for some reason
+    if  distance >= lookahead_distance:
       lookahead_point = point
       break
 
   if lookahead_point is None:
     return None
 
+  print(lookahead_point)
   angle_to_lookahead_radian = np.arctan2(vehicle_position[1] - lookahead_point[1], lookahead_point[0] - vehicle_position[0])
-
   return angle_to_lookahead_radian
 
 
@@ -185,5 +169,5 @@ def predict(image, model=None):
 Lane = LaneDataset(train=True)
 SAMPLE_IMAGES = Lane.X_train
 model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
-for img in SAMPLE_IMAGES.take(5):
+for img in SAMPLE_IMAGES.take(10):
   predict(img, model)
