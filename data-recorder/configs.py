@@ -15,12 +15,8 @@ NEIGHTBOR_VEHICLES_MODE = False
 isSaving = True
 # Keep own vehicle either in center of road or oscillate between lanemarkings
 isCenter = True
-# Draw all lanes in carla simulator
-draw3DLanes = False
 # Calculate and draw 3D Lanes on Juction
-junctionMode = True
-# Third-person view for the ego vehicle
-isThirdPerson = False
+junctionMode = False
 
 # Number of images stored in a .npy file
 number_of_images = 100

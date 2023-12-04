@@ -5,8 +5,9 @@ from    utils.prints \
 
 # ------------------------------------------------------
 # Import library
-import  numpy as np
 import  os
+import  cv2
+import  numpy as np
 
 # ------------------------------------------------------
 # BufferedImageSaver Class
@@ -78,6 +79,7 @@ class   BufferedImageSaver:
             self.reset()
             self.add_image(img_bytes, name)
         else:
+            # cv2.imwrite(f"{img_bytes}_{self.index}.png", img_bytes)
             raw_image = np.frombuffer(img_bytes, dtype=np.uint8)
             raw_image = raw_image.reshape(self.buffer.shape[1], self.buffer.shape[2], -1)
             raw_image = self.process_by_type(raw_image[:, :, :3], name)

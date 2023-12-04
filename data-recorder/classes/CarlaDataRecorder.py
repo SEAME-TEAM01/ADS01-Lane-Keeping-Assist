@@ -83,20 +83,15 @@ class   CarlaDataRecorder(CarlaClient):
                             )
         self.image_counter  = 0
 
-        # 
-        if config.isThirdPerson:
-            self.camera_transforms=[carla.Transform(carla.Location(x=-4.5, z=2.2), carla.Rotation(pitch=-14.5)),
-                                    carla.Transform(carla.Location(x=-4.0, z=2.2), carla.Rotation(pitch=-18.0))]
-        else:
-            self.camera_transforms=[carla.Transform(carla.Location(x=0.0,  z=3.2), carla.Rotation(pitch=-19.5)), # camera 1
-                                    carla.Transform(carla.Location(x=0.0,  z=2.8), carla.Rotation(pitch=-18.5)), # camera 2
-                                    carla.Transform(carla.Location(x=0.3,  z=2.4), carla.Rotation(pitch=-15.0)), # camera 3
-                                    carla.Transform(carla.Location(x=1.1,  z=2.0), carla.Rotation(pitch=-16.5)), # camera 4
-                                    carla.Transform(carla.Location(x=1.0,  z=2.0), carla.Rotation(pitch=-18.5)), # camera 5
-                                    carla.Transform(carla.Location(x=1.4,  z=1.2), carla.Rotation(pitch=-13.5)), # camera 6
-                                    carla.Transform(carla.Location(x=1.8,  z=1.2), carla.Rotation(pitch=-14.5)), # camera 7
-                                    carla.Transform(carla.Location(x=2.17, z=0.9), carla.Rotation(pitch=-14.5)), # camera 8
-                                    carla.Transform(carla.Location(x=2.2,  z=0.7), carla.Rotation(pitch=-11.5))] # camera 9
+        self.camera_transforms=[carla.Transform(carla.Location(x=0.0,  z=3.2), carla.Rotation(pitch=-19.5)), # camera 1
+                                carla.Transform(carla.Location(x=0.0,  z=2.8), carla.Rotation(pitch=-18.5)), # camera 2
+                                carla.Transform(carla.Location(x=0.3,  z=2.4), carla.Rotation(pitch=-15.0)), # camera 3
+                                carla.Transform(carla.Location(x=1.1,  z=2.0), carla.Rotation(pitch=-16.5)), # camera 4
+                                carla.Transform(carla.Location(x=1.0,  z=2.0), carla.Rotation(pitch=-18.5)), # camera 5
+                                carla.Transform(carla.Location(x=1.4,  z=1.2), carla.Rotation(pitch=-13.5)), # camera 6
+                                carla.Transform(carla.Location(x=1.8,  z=1.2), carla.Rotation(pitch=-14.5)), # camera 7
+                                carla.Transform(carla.Location(x=2.17, z=0.9), carla.Rotation(pitch=-14.5)), # camera 8
+                                carla.Transform(carla.Location(x=2.2,  z=0.7), carla.Rotation(pitch=-11.5))] # camera 9
         print_info("CarlaGame initialize done")
         print_end()
 
@@ -132,16 +127,6 @@ class   CarlaDataRecorder(CarlaClient):
         print_info("Camera Index:", camera_index)
         print_end()
 
-        if config.draw3DLanes:
-            for i, color in enumerate(self.lane_marker.colormap_carla):
-                for j in range(0, config.number_of_lanepoints-1):
-                    self.lane_marker.draw_lines(
-                        self.client,
-                        lane_markings[i][j],
-                        lane_markings[i][j+1],
-                        self.lane_marker.colormap_carla[color]
-                    )
-
     def detect_lanemarkings(self, new_waypoint, image_semseg):
         lanes_list      = []    # filtered 2D-Points
         x_lanes_list    = []    # only x values of lanes
@@ -160,7 +145,7 @@ class   CarlaDataRecorder(CarlaClient):
         
         return lanes_list, x_lanes_list
 
-    def render_display(self, image, image_semseg, lanes_list, render_lanes=True):
+    def render_display(self, image, image_semseg, lanes_list, render_lanes=False):
         """
         Renders the images captured from both cameras and shows it on the
         pygame display
@@ -211,17 +196,13 @@ class   CarlaDataRecorder(CarlaClient):
         # Calculate all the lanes with the helper class 'LaneMarkings'
         lanes_list, x_lanes_list = self.detect_lanemarkings(new_waypoint, image_semseg)
         
-        # Draw all 3D lanes in carla simulator
-        if config.draw3DLanes:
-            for i, color in enumerate(self.lanemarkings.colormap_carla):
-                    self.lanemarkings.draw_lanes(self.client, self.lanes[i][-1], self.lanes[i][-2], self.lanemarkings.colormap_carla[color])
-        
         # Render the pygame display and show the lanes accordingly
         self.render_display(image_rgb, image_semseg, lanes_list)
 
         # Save images using buffered imagesaver
         if config.isSaving:
             if (not config.junctionMode and self.vehicle_manager.junctionInSightCounter <= 0) or config.junctionMode:
+                pygame.image.save(self.display, f"test.jpg")
                 self.image_saver.add_image(image_rgb.raw_data, 'CameraRGB')
                 self.label_saver.add_label(x_lanes_list)
                 self.image_counter += 1

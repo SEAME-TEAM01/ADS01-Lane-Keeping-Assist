@@ -93,11 +93,11 @@ class   VehicleManager():
             oscillation = 1
             angle = 10
 
-        vehicle.set_transform(carla.Transform(waypoint_list[0 + 6 * int(config.isThirdPerson)].transform.location + 
-                                              waypoint_list[0 + 6 * int(config.isThirdPerson)].transform.get_right_vector() * oscillation * (2/math.pi * math.asin(math.sin(self.deviation_counter))),
-                                              carla.Rotation(pitch  = waypoint_list[0 + 6 * int(config.isThirdPerson)].transform.rotation.pitch, 
-                                                             yaw    = waypoint_list[0 + 6 * int(config.isThirdPerson)].transform.rotation.yaw + angle * math.sin(self.deviation_counter), 
-                                                             roll   = waypoint_list[0 + 6 * int(config.isThirdPerson)].transform.rotation.roll)))
+        vehicle.set_transform(carla.Transform(waypoint_list[0].transform.location + 
+                                              waypoint_list[0].transform.get_right_vector() * oscillation * (2/math.pi * math.asin(math.sin(self.deviation_counter))),
+                                              carla.Rotation(pitch  = waypoint_list[0].transform.rotation.pitch, 
+                                                             yaw    = waypoint_list[0].transform.rotation.yaw + angle * math.sin(self.deviation_counter), 
+                                                             roll   = waypoint_list[0].transform.rotation.roll)))
 
         # Finally look for a new future waypoint to append to the list and show the lanepoints accordingly
         self.potential_new_waypoints = waypoint_list[-1].next(config.meters_per_frame)
