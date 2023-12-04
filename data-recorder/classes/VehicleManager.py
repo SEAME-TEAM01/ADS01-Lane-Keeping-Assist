@@ -105,7 +105,3 @@ class   VehicleManager():
         waypoint_list.append(new_waypoint)
         
         return new_waypoint
-
-    def destroy(self):
-        for vehicle in self.vehicles_list:
-            vehicle.destroy()

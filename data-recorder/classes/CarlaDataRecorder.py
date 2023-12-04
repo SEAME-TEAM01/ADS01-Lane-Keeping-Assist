@@ -26,10 +26,8 @@ from    classes.VehicleManager \
         import  VehicleManager
 from    classes.CarlaSyncMode \
         import  CarlaSyncMode
-from    classes.BufferedImageSaver \
-        import  BufferedImageSaver
-from    classes.LabelSaver \
-        import  LabelSaver
+from    classes.DatasetSaver \
+        import  DatasetSaver
 
 
 # ------------------------------------------------------
@@ -53,6 +51,7 @@ class   CarlaDataRecorder(CarlaClient):
         
         # pygame setting
         pygame.init()
+        print_end()
         self.window         = (config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
         self.display        = pygame.display.set_mode(
             self.window, 
@@ -63,35 +62,26 @@ class   CarlaDataRecorder(CarlaClient):
 
         # output setting
         self.actor_list     = []
-        self.filename       = f"{config.output_directory}/{config.CARLA_TOWN}/"
         
         # manager setting
         self.lane_marker    = LaneMarker(self.lanes)
         self.vehicle_manager= VehicleManager()
-        self.image_saver    = BufferedImageSaver(
-                                self.filename,
-                                config.number_of_images,
-                                config.WINDOW_WIDTH,
-                                config.WINDOW_HEIGHT,
-                                3,  # depth
-                                ''  # sensorname
-                            )
-        self.label_saver    = LabelSaver(
+        self.dataset_saver  = DatasetSaver(
                                 config.h_samples, 
-                                config.saving_directory,
-                                config.train_gt,   
-                            )
-        self.image_counter  = 0
+                                config.label_directory,
+                                config.train_gt,
+                                config.image_directory)
 
-        self.camera_transforms=[carla.Transform(carla.Location(x=0.0,  z=3.2), carla.Rotation(pitch=-19.5)), # camera 1
-                                carla.Transform(carla.Location(x=0.0,  z=2.8), carla.Rotation(pitch=-18.5)), # camera 2
-                                carla.Transform(carla.Location(x=0.3,  z=2.4), carla.Rotation(pitch=-15.0)), # camera 3
-                                carla.Transform(carla.Location(x=1.1,  z=2.0), carla.Rotation(pitch=-16.5)), # camera 4
-                                carla.Transform(carla.Location(x=1.0,  z=2.0), carla.Rotation(pitch=-18.5)), # camera 5
-                                carla.Transform(carla.Location(x=1.4,  z=1.2), carla.Rotation(pitch=-13.5)), # camera 6
-                                carla.Transform(carla.Location(x=1.8,  z=1.2), carla.Rotation(pitch=-14.5)), # camera 7
-                                carla.Transform(carla.Location(x=2.17, z=0.9), carla.Rotation(pitch=-14.5)), # camera 8
-                                carla.Transform(carla.Location(x=2.2,  z=0.7), carla.Rotation(pitch=-11.5))] # camera 9
+        # self.camera_transforms=[carla.Transform(carla.Location(x=0.0,  z=3.2), carla.Rotation(pitch=-19.5)), # camera 1
+        #                         carla.Transform(carla.Location(x=0.0,  z=2.8), carla.Rotation(pitch=-18.5)), # camera 2
+        #                         carla.Transform(carla.Location(x=0.3,  z=2.4), carla.Rotation(pitch=-15.0)), # camera 3
+        #                         carla.Transform(carla.Location(x=1.1,  z=2.0), carla.Rotation(pitch=-16.5)), # camera 4
+        #                         carla.Transform(carla.Location(x=1.0,  z=2.0), carla.Rotation(pitch=-18.5)), # camera 5
+        #                         carla.Transform(carla.Location(x=1.4,  z=1.2), carla.Rotation(pitch=-13.5)), # camera 6
+        #                         carla.Transform(carla.Location(x=1.8,  z=1.2), carla.Rotation(pitch=-14.5)), # camera 7
+        #                         carla.Transform(carla.Location(x=2.17, z=0.9), carla.Rotation(pitch=-14.5)), # camera 8
+        #                         carla.Transform(carla.Location(x=2.2,  z=0.7), carla.Rotation(pitch=-11.5))] # camera 9
+        self.camera = carla.Transform(carla.Location(x=2.2,  z=0.7), carla.Rotation(pitch=-11.5))
         print_info("CarlaGame initialize done")
         print_end()
 
@@ -119,13 +109,9 @@ class   CarlaDataRecorder(CarlaClient):
                 self.client,
                 lanepoint
             )
-        
-        camera_index = random.randint(0, len(self.camera_transforms)-1)
 
-        self.camera_rgb.set_transform(self.camera_transforms[camera_index])
-        self.camera_semseg.set_transform(self.camera_transforms[camera_index])
-        print_info("Camera Index:", camera_index)
-        print_end()
+        self.camera_rgb.set_transform(self.camera)
+        self.camera_semseg.set_transform(self.camera)
 
     def detect_lanemarkings(self, new_waypoint, image_semseg):
         lanes_list      = []    # filtered 2D-Points
@@ -164,7 +150,6 @@ class   CarlaDataRecorder(CarlaClient):
                         pygame.draw.circle(self.display, self.lane_marker.colormap[color], lanes_list[i][j], 3, 2)
         
         self.display.blit(self.font.render('% 5d FPS ' % self.clock.get_fps(), True, (255, 255, 255)), (8, 10))
-        self.display.blit(self.font.render('Dataset % 2d ' % self.image_saver.reset_count, True, (255, 255, 255)), (20, 30))
         self.display.blit(self.font.render('Map: ' + config.CARLA_TOWN, True, (255, 255, 255)), (20, 50))
 
         pygame.display.flip()
@@ -201,25 +186,10 @@ class   CarlaDataRecorder(CarlaClient):
 
         # Save images using buffered imagesaver
         if config.isSaving:
+            self.dataset_saver.save(x_lanes_list, self.display)
             if (not config.junctionMode and self.vehicle_manager.junctionInSightCounter <= 0) or config.junctionMode:
-                pygame.image.save(self.display, f"test.jpg")
-                self.image_saver.add_image(image_rgb.raw_data, 'CameraRGB')
-                self.label_saver.add_label(x_lanes_list)
-                self.image_counter += 1
-                if(self.image_counter % config.images_until_respawn == 0):
+                if(self.dataset_saver.index % config.images_until_respawn == 0):
                     self.reset_vehicle_position()
-
-    def stop_saving(self):
-        """
-        After collecting more than n .npy files, stop saving and close the game window
-
-        Returns True if we collected more than 100 .npy files
-        """
-        if(self.image_saver.reset_count > config.total_number_of_imagesets - 1):
-            print_info("Data collected...")
-            return True
-        
-        return False
 
     def initialize(self):
         self.blueprint_library = self.world.get_blueprint_library()
@@ -227,13 +197,12 @@ class   CarlaDataRecorder(CarlaClient):
         self.vehicle = self.world.spawn_actor(random.choice(self.blueprint_library.filter("vehicle.ford.mustang")), self.start_position)
         self.actor_list.append(self.vehicle)
         self.vehicle.set_simulate_physics(False)
-        self.camera_transform = self.camera_transforms[random.randint(0, len(self.camera_transforms)-1)]
 
         self.bp_camera_rgb = self.blueprint_library.find("sensor.camera.rgb")
         self.bp_camera_rgb.set_attribute("image_size_x", f"{config.WINDOW_WIDTH}")
         self.bp_camera_rgb.set_attribute("image_size_y", f"{config.WINDOW_HEIGHT}")
         self.bp_camera_rgb.set_attribute("fov",          f"{config.FOV}")
-        self.camera_rgb_spawnpoint = self.camera_transform
+        self.camera_rgb_spawnpoint = self.camera
         self.camera_rgb = self.world.spawn_actor(
             self.bp_camera_rgb,
             self.camera_rgb_spawnpoint,
@@ -244,7 +213,7 @@ class   CarlaDataRecorder(CarlaClient):
         self.bp_camera_semseg.set_attribute("image_size_x", f"{config.WINDOW_WIDTH}")
         self.bp_camera_semseg.set_attribute("image_size_y", f"{config.WINDOW_HEIGHT}")
         self.bp_camera_semseg.set_attribute("fov",          f"{config.FOV}")
-        self.camera_semseg_spawnpoint = self.camera_transform
+        self.camera_semseg_spawnpoint = self.camera
         self.camera_semseg = self.world.spawn_actor(
             self.bp_camera_semseg,
             self.camera_semseg_spawnpoint,
@@ -264,19 +233,17 @@ class   CarlaDataRecorder(CarlaClient):
                 fps=config.FPS
             ) as self.sync_mode:
                 while True:
-                    if should_quit() or self.stop_saving():
+                    if should_quit():
                         return
                     self.on_gameloop()
         finally:
             print_info("Saving files...")
-            self.image_saver.save()
-            self.label_saver.close_file()
+            self.dataset_saver.close_file()
             print_end()
 
             print_info("Destroying actors and cleaning up...")
             for actor in self.actor_list:
                 actor.destroy()
-            self.vehicle_manager.destroy()
             print_end()
 
             pygame.quit()
