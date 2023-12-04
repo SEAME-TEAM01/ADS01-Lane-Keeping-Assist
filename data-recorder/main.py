@@ -32,15 +32,12 @@ def main():
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(format="%(levelname)s: %(message)s", level=log_level)
 
-    try:
-        lanes =[deque(maxlen=config.number_of_lanepoints), 
-                deque(maxlen=config.number_of_lanepoints), 
-                deque(maxlen=config.number_of_lanepoints), 
-                deque(maxlen=config.number_of_lanepoints)]
-        game = CarlaDataRecorder(args, lanes)
-        game.launch()
-    except KeyboardInterrupt:
-        raise KeyboardInterrupt("")
+    lanes =[deque(maxlen=config.number_of_lanepoints), 
+            deque(maxlen=config.number_of_lanepoints), 
+            deque(maxlen=config.number_of_lanepoints), 
+            deque(maxlen=config.number_of_lanepoints)]
+    game = CarlaDataRecorder(args, lanes)
+    game.launch()
 
 # ------------------------------------------------------
 # Main Launcher & Exception handling
