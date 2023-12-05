@@ -4,6 +4,7 @@ log/
 dataset/*
 carla/
 _out/
+data/*
 log/*/summary.txt
 
 # Byte-compiled / optimized / DLL files

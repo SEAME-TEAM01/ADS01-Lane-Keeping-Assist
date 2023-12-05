@@ -23,7 +23,7 @@ def load_args():
     args.add_argument( # port
         '--port',
         metavar = 'P',
-        default = 2000,
+        default = 3000,
         type    = int,
         help    = 'TCP port to listen to (default: 2000)')
     args.add_argument( # resolutions
