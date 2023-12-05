@@ -6,6 +6,8 @@ carla/
 _out/
 data/*
 log/*/summary.txt
+.DS_Store
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

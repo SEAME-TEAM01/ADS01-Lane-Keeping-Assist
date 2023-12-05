@@ -1,31 +1,21 @@
 import pygame
-import numpy as np
-import cv2
 import carla
 
+HOST = 'localhost'
+PORT = 3000
 
-client = carla.Client('localhost', 3000)
-client.set_timeout(2.0)
+def main():
+  pygame.init()
+  pygame.font.init()
+  world = None
 
-world = client.get_world()
+  try:
+    client = carla.Client(HOST, PORT)
+    client.set_timeout(2.0)
 
-# プレイヤー車を生成
-blueprint_library = world.get_blueprint_library()
-vehicle_bp = blueprint_library.filter('vehicle.tesla.model3')[0]
-vehicle_transform = carla.Transform(carla.Location(x=100, y=200, z=40), carla.Rotation(yaw=180))
-vehicle = world.spawn_actor(vehicle_bp, vehicle_transform)
+    display = pygame.display.set_mode((800, 600), pygame.HWSURFACE | pygame.DOUBLEBUF)
+  finally:
+     pass
 
-# スクリーンの設定
-pygame.init()
-display = pygame.display.set_mode((800, 600))
-
-try:
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-
-
-finally:
-    pygame.quit()
+if __name__ == '__main__':
+    main()
