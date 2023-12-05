@@ -7,7 +7,7 @@ FOV = 90.0
 CARLA_TOWN = "Town03_Opt"
 
 WORKER_THREADS = 1
-CLIENT_TIMEOUT = 30.0
+CLIENT_TIMEOUT = 40.0
 LANE_DETECTION_TIMEOUT = 30.0
 NEIGHTBOR_VEHICLES_MODE = False
 
@@ -15,12 +15,8 @@ NEIGHTBOR_VEHICLES_MODE = False
 isSaving = True
 # Keep own vehicle either in center of road or oscillate between lanemarkings
 isCenter = True
-# Draw all lanes in carla simulator
-draw3DLanes = False
 # Calculate and draw 3D Lanes on Juction
-junctionMode = True
-# Third-person view for the ego vehicle
-isThirdPerson = False
+junctionMode = False
 
 # Number of images stored in a .npy file
 number_of_images = 100
@@ -45,13 +41,11 @@ for y in range(row_anchor_start, WINDOW_HEIGHT, 10):
 
 # ------------------------------------------------------
 # - Saver Variables
-# Output for .npy files
-output_directory = 'data/rawimages/'
-# Loading directory of .npy files
-loading_directory = output_directory + CARLA_TOWN + '/'
+# Output for image files
+image_directory = 'data/images/' + CARLA_TOWN + '/'
 # Path to the image and label files
-saving_directory = 'data/dataset/' + CARLA_TOWN + '/'
-train_gt = saving_directory + 'train_gt_tmp.json'
-test_gt = saving_directory + 'test_gt.json'
-overall_train_gt = saving_directory + 'train_gt.json'
+label_directory = 'data/dataset/' + CARLA_TOWN + '/'
+train_gt = label_directory + 'train_gt_tmp.json'
+test_gt = label_directory + 'test_gt.json'
+overall_train_gt = label_directory + 'train_gt.json'
 # ------------------------------------------------------
