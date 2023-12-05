@@ -10,14 +10,14 @@ class Control(object):
     def __init__(self, world) -> None:
         self._control = carla.VehicleControl()
         self._world = world
-        
+
     def control(self, steering, throttle):
         self._control.steer = steering
         self._control.throttle = throttle
         self._control.brake = 0.0
-        
+
         self._world.player.apply_control(self._control)
-        
+
 
 def main():
   pygame.init()
@@ -39,8 +39,8 @@ def main():
         world.tick(clock)
         world.render(display)
         controler.control(steering=0.0, throttle=0.5)
-        pygame.display.flip()   
-    
+        pygame.display.flip()
+
 
   finally:
     if world is not None:

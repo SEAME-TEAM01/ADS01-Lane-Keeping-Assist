@@ -79,6 +79,16 @@ class World(object):
         if self.player is not None:
             self.player.destroy()
 
+    def add_camera_to_vehicle(self, vehicle):
+      cam_bp = self._world.get_blueprint_library().find('sensor.camera.rgb')
+      cam_bp.set_attribute("image_size_x",str(1024))
+      cam_bp.set_attribute("image_size_y",str(512))
+      cam_bp.set_attribute("fov",str(105))
+      cam_location = carla.Location(2,0,1)
+      cam_rotation = carla.Rotation(0,180,0)
+      cam_transform = carla.Transform(cam_location,cam_rotation)
+      ego_cam = self._world.spawn_actor(cam_bp,cam_transform,attach_to=self.player, attachment_type=carla.AttachmentType.Rigid)
+      ego_cam.listen(lambda image: image.save_to_disk('./data/%.6d.jpg' % image.frame))
 
 def find_weather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
@@ -129,7 +139,7 @@ class CollisionSensor(object):
         self.history.append((event.frame, intensity))
         if len(self.history) > 4000:
             self.history.pop(0)
-            
+
 # ==============================================================================
 # -- LaneInvasionSensor --------------------------------------------------------
 # ==============================================================================
@@ -156,7 +166,7 @@ class LaneInvasionSensor(object):
         lane_types = set(x.type for x in event.crossed_lane_markings)
         text = ['%r' % str(x).split()[-1] for x in lane_types]
         self.hud.notification('Crossed line %s' % ' and '.join(text))
-        
+
 # ==============================================================================
 # -- GnssSensor --------------------------------------------------------
 # ==============================================================================
@@ -183,7 +193,7 @@ class GnssSensor(object):
             return
         self.lat = event.latitude
         self.lon = event.longitude
-        
+
 # ==============================================================================
 # -- CameraManager -------------------------------------------------------------
 # ==============================================================================
