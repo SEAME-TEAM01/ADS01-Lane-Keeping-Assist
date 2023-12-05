@@ -5,6 +5,7 @@ dataset/*
 carla/
 _out/
 data/*
+src/_data/
 log/*/summary.txt
 .DS_Store
 

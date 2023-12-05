@@ -20,6 +20,16 @@ class World(object):
         self._actor_filter = actor_filter
         self.restart()
         self.world.on_tick(hud.on_world_tick)
+        
+        cam_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
+        cam_bp.set_attribute("image_size_x",str(1024))
+        cam_bp.set_attribute("image_size_y",str(512))
+        cam_bp.set_attribute("fov",str(105))
+        cam_location = carla.Location(2,0,1)
+        cam_rotation = carla.Rotation(0,180,0)
+        cam_transform = carla.Transform(cam_location,cam_rotation)
+        self.sensor = self.world.spawn_actor(cam_bp,cam_transform,attach_to=self.player, attachment_type=carla.AttachmentType.Rigid)
+        self.sensor.listen(lambda image: self.process_image(image))
 
     def restart(self):
         # Keep same camera config if the camera manager exists.
@@ -80,23 +90,12 @@ class World(object):
         if self.player is not None:
             self.player.destroy()
 
-    def add_camera_to_vehicle(self, vehicle):
-      cam_bp = self._world.get_blueprint_library().find('sensor.camera.rgb')
-      cam_bp.set_attribute("image_size_x",str(1024))
-      cam_bp.set_attribute("image_size_y",str(512))
-      cam_bp.set_attribute("fov",str(105))
-      cam_location = carla.Location(2,0,1)
-      cam_rotation = carla.Rotation(0,180,0)
-      cam_transform = carla.Transform(cam_location,cam_rotation)
-      ego_cam = self._world.spawn_actor(cam_bp,cam_transform,attach_to=self.player, attachment_type=carla.AttachmentType.Rigid)
-      ego_cam.listen(lambda image: image.save_to_disk('./data/%.6d.jpg' % image.frame))
-      # ego_cam.listen(lambda image: self.process_image(image))
-
     def process_image(self, image):
+      print("pass process image")
       array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
-      array = np.reshape(array, (image.height, image.width, 4))  # RGBA形式に変換
+      array = np.reshape(array, (image.height, image.width, 4))
+      image.save_to_disk('_data/%.6d.jpg' % image.frame)
 
-      # RGBのみを取り出し、画像サイズを変更
       array = array[:, :, :3]
       array = cv2.resize(array, (512, 256))
       return array
