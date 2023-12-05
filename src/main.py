@@ -31,6 +31,7 @@ def main():
     display = pygame.display.set_mode((800, 600), pygame.HWSURFACE | pygame.DOUBLEBUF)
     hud = HUD(800, 600)
     world = World(client.get_world(), hud, "vehicle.*")
+    world.add_camera_to_vehicle()
     controler = Control(world)
 
     clock = pygame.time.Clock()
