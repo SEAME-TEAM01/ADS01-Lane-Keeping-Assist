@@ -6,6 +6,19 @@ from carla_class.World import World
 HOST = 'localhost'
 PORT = 2000
 
+class Control(object):
+    def __init__(self, world) -> None:
+        self._control = carla.VehicleControl()
+        self._world = world
+        
+    def control(self, steering, throttle):
+        self._control.steer = steering
+        self._control.throttle = throttle
+        self._control.brake = 0.0
+        
+        self._world.player.apply_control(self._control)
+        
+
 def main():
   pygame.init()
   pygame.font.init()
@@ -18,14 +31,15 @@ def main():
     display = pygame.display.set_mode((800, 600), pygame.HWSURFACE | pygame.DOUBLEBUF)
     hud = HUD(800, 600)
     world = World(client.get_world(), hud, "vehicle.*")
-    
+    controler = Control(world)
 
     clock = pygame.time.Clock()
     while True:
         clock.tick_busy_loop(60)
         world.tick(clock)
         world.render(display)
-        pygame.display.flip()    
+        controler.control(steering=0.0, throttle=0.5)
+        pygame.display.flip()   
     
 
   finally:
