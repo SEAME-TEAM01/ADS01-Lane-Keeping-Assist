@@ -25,8 +25,8 @@ class World(object):
         cam_bp.set_attribute("image_size_x",str(1024))
         cam_bp.set_attribute("image_size_y",str(512))
         cam_bp.set_attribute("fov",str(105))
-        cam_location = carla.Location(2,0,1)
-        cam_rotation = carla.Rotation(0,180,0)
+        cam_location = carla.Location(2,0,1.5)
+        cam_rotation = carla.Rotation(0,0,0)
         cam_transform = carla.Transform(cam_location,cam_rotation)
         self.sensor = self.world.spawn_actor(cam_bp,cam_transform,attach_to=self.player, attachment_type=carla.AttachmentType.Rigid)
         self.sensor.listen(lambda image: self.process_image(image))
@@ -91,10 +91,9 @@ class World(object):
             self.player.destroy()
 
     def process_image(self, image):
-      print("pass process image")
       array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
       array = np.reshape(array, (image.height, image.width, 4))
-      image.save_to_disk('_data/%.6d.jpg' % image.frame)
+    #   image.save_to_disk('_data/%.6d.jpg' % image.frame)
 
       array = array[:, :, :3]
       array = cv2.resize(array, (512, 256))
