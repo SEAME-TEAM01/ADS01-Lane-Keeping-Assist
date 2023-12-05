@@ -133,7 +133,7 @@ def predict(image, model=None):
   lanes_coords = mask_to_coordinates(mask)
   df_lanes = HDBSCAN_cluster(lanes_coords)
   left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes) # return dataframe x, y coordinates
-  draw_lanes(left_lane=left_lane, right_lane=right_lane)
+  # draw_lanes(left_lane=left_lane, right_lane=right_lane)
   steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
   print(steering_angle)
   display_heading_line(image, left_lane, right_lane, steering_angle)

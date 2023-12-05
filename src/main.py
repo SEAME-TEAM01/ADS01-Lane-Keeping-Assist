@@ -2,9 +2,12 @@ import pygame
 import carla
 from carla_class.HUD import HUD
 from carla_class.World import World
+# from predict import predict
+import matplotlib.pyplot as plt
 
 HOST = 'localhost'
 PORT = 2000
+MODEL_PATH = ""
 
 class Control(object):
     def __init__(self, world) -> None:
@@ -17,7 +20,12 @@ class Control(object):
         self._control.brake = 0.0
 
         self._world.player.apply_control(self._control)
-
+        
+    def predict(self,image):
+        plt.imshow(image)
+        plt.show()
+        # steer_angle = predict(image=image, model=MODEL_PATH)
+        # self.control(steering=steer_angle, throttle=0.3)
 
 def main():
   pygame.init()
@@ -40,7 +48,9 @@ def main():
         clock.tick_busy_loop(60)
         world.tick(clock)
         world.render(display)
-        controler.control(steering=0.0, throttle=0.5)
+        if world.img_queue.empty() == False:
+            image = world.img_queue.get()
+            controler.predict(image)
         pygame.display.flip()
 
   finally:

@@ -4,11 +4,12 @@ import carla
 import pygame
 import numpy as np
 import cv2
-
+from queue import Queue
 
 class World(object):
     def __init__(self, carla_world, hud, actor_filter):
         self.world = carla_world
+        self.control = carla.VehicleControl()
         self.hud = hud
         self.player = None
         self.collision_sensor = None
@@ -20,6 +21,7 @@ class World(object):
         self._actor_filter = actor_filter
         self.restart()
         self.world.on_tick(hud.on_world_tick)
+        self.img_queue = Queue(maxsize=100000)
         
         cam_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
         cam_bp.set_attribute("image_size_x",str(1024))
@@ -97,6 +99,7 @@ class World(object):
 
       array = array[:, :, :3]
       array = cv2.resize(array, (512, 256))
+      self.img_queue.put(array)
       return array
 
 def find_weather_presets():
