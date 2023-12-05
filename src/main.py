@@ -27,6 +27,8 @@ def main():
   try:
     client = carla.Client(HOST, PORT)
     client.set_timeout(2.0)
+    settings = client.get_world().get_settings()
+    settings.fixed_delta_seconds = 0.05  # (1/20 = 0.05sec)
 
     display = pygame.display.set_mode((800, 600), pygame.HWSURFACE | pygame.DOUBLEBUF)
     hud = HUD(800, 600)
