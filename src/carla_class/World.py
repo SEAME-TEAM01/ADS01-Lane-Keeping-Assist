@@ -3,6 +3,7 @@ import random
 import carla
 import pygame
 import numpy as np
+import cv2
 
 
 class World(object):
@@ -89,6 +90,16 @@ class World(object):
       cam_transform = carla.Transform(cam_location,cam_rotation)
       ego_cam = self._world.spawn_actor(cam_bp,cam_transform,attach_to=self.player, attachment_type=carla.AttachmentType.Rigid)
       ego_cam.listen(lambda image: image.save_to_disk('./data/%.6d.jpg' % image.frame))
+      # ego_cam.listen(lambda image: self.process_image(image))
+
+    def process_image(self, image):
+      array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
+      array = np.reshape(array, (image.height, image.width, 4))  # RGBA形式に変換
+
+      # RGBのみを取り出し、画像サイズを変更
+      array = array[:, :, :3]
+      array = cv2.resize(array, (512, 256))
+      return array
 
 def find_weather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')

@@ -139,8 +139,12 @@ def predict(image, model=None):
   display_heading_line(image, left_lane, right_lane, steering_angle)
   return steering_angle
 
-Lane = LaneDataset(train=True)
-SAMPLE_IMAGES = Lane.X_train
-model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
-for img in SAMPLE_IMAGES.take(10):
-  predict(img, model)
+def main():
+  Lane = LaneDataset(train=True)
+  SAMPLE_IMAGES = Lane.X_train
+  model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
+  for img in SAMPLE_IMAGES.take(10):
+    predict(img, model)
+
+# if __name__ == '__main__':
+#   main()

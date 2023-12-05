@@ -42,7 +42,6 @@ def main():
         controler.control(steering=0.0, throttle=0.5)
         pygame.display.flip()
 
-
   finally:
     if world is not None:
         world.destroy()
