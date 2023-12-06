@@ -123,7 +123,7 @@ def display_heading_line(image, left_lane, right_lane, steering_angle):
     plt.show()
 
 
-def predict(image, model=None):
+def predict_steering_angle(image, model=None):
   """
   Predict Steering Angle from Live Image
   """
@@ -136,7 +136,7 @@ def predict(image, model=None):
   # draw_lanes(left_lane=left_lane, right_lane=right_lane)
   steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
   print(steering_angle)
-  display_heading_line(image, left_lane, right_lane, steering_angle)
+  # display_heading_line(image, left_lane, right_lane, steering_angle)
   return steering_angle
 
 def main():
@@ -144,7 +144,7 @@ def main():
   SAMPLE_IMAGES = Lane.X_train
   model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
   for img in SAMPLE_IMAGES.take(10):
-    predict(img, model)
+    predict_steering_angle(img, model)
 
 # if __name__ == '__main__':
 #   main()

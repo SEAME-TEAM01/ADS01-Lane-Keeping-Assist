@@ -2,7 +2,7 @@ import pygame
 import carla
 from carla_class.HUD import HUD
 from carla_class.World import World
-# from predict import predict
+from predict import predict_steering_angle
 import matplotlib.pyplot as plt
 
 HOST = 'localhost'
@@ -20,12 +20,12 @@ class Control(object):
         self._control.brake = 0.0
 
         self._world.player.apply_control(self._control)
-        
+
     def predict(self,image):
-        plt.imshow(image)
-        plt.show()
-        # steer_angle = predict(image=image, model=MODEL_PATH)
-        # self.control(steering=steer_angle, throttle=0.3)
+        steer_angle = predict_steering_angle(image=image, model=MODEL_PATH)
+        # Todo
+        # Normalize steering angle (0-180) to (-1.0,1.0)
+        self.control(steering=steer_angle, throttle=0.3)
 
 def main():
   pygame.init()
