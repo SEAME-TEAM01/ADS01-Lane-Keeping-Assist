@@ -4,7 +4,7 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 FPS = 20
 FOV = 90.0
-CARLA_TOWN = "Town07_Opt"
+CARLA_TOWN = "Town10HD_Opt"
 
 WORKER_THREADS = 1
 CLIENT_TIMEOUT = 40.0
@@ -43,10 +43,10 @@ for y in range(row_anchor_start, WINDOW_HEIGHT, 10):
 
 # ------------------------------------------------------
 # - Saver Variables
-# Output for image files
-image_directory = '../data/images/' + CARLA_TOWN + '/'
-# Path to the image and label files
-label_directory = '../data/dataset/' + CARLA_TOWN + '/'
+dataset_directory = '../../ADS01-Lane-Keeping-Assist-Dataset/'
+image_directory = dataset_directory + 'images/'
+label_directory = dataset_directory + 'labels/'
+masks_directory = dataset_directory + 'masks/'
 train_gt = label_directory + 'train_gt_tmp.json'
 test_gt = label_directory + 'test_gt.json'
 overall_train_gt = label_directory + 'train_gt.json'
