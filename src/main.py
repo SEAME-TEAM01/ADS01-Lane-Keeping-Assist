@@ -1,3 +1,4 @@
+import os
 import pygame
 import carla
 from carla_class.HUD import HUD
@@ -7,7 +8,7 @@ import matplotlib.pyplot as plt
 
 HOST = 'localhost'
 PORT = 2000
-MODEL_PATH = ""
+MODEL_PATH = os.path.join(os.getcwd(), 'model/model.hdf5')
 
 class Control(object):
     def __init__(self, world) -> None:
@@ -23,9 +24,10 @@ class Control(object):
 
     def predict(self,image):
         steer_angle = predict_steering_angle(image=image, model=MODEL_PATH)
-        # Todo
-        # Normalize steering angle (0-180) to (-1.0,1.0)
-        self.control(steering=steer_angle, throttle=0.3)
+        normalized_angle = steer_angle - 90
+
+        normalized_angle = normalized_angle / 90
+        self.control(steering=normalized_angle, throttle=0.3)
 
 def main():
   pygame.init()
