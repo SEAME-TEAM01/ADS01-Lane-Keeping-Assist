@@ -31,7 +31,7 @@ class   DatasetSaver():
         
 
     def save(self, x_lane_list, display):
-        if self.real_index % 4 == 0:
+        if self.real_index % 2 == 0:
             image_file = self.image_dir + f'{self.index:04d}' + '.jpg'
             folder = os.path.dirname(image_file)
             if not os.path.isdir(folder):

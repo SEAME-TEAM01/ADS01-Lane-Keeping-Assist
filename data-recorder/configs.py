@@ -4,7 +4,7 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 FPS = 20
 FOV = 90.0
-CARLA_TOWN = "Town02_Opt"
+CARLA_TOWN = "Town07_Opt"
 
 WORKER_THREADS = 1
 CLIENT_TIMEOUT = 40.0
@@ -17,6 +17,8 @@ isSaving = True
 isCenter = True
 # Calculate and draw 3D Lanes on Juction
 junctionMode = False
+# 
+draw3DLanes = False
 
 # Number of images stored in a .npy file
 number_of_images = 100
