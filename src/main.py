@@ -2,18 +2,23 @@ import os
 import pygame
 import carla
 from carla_class.HUD import HUD
+import tensorflow.keras as keras
+from focal_loss import BinaryFocalLoss
 from carla_class.World import World
 from predict import predict_steering_angle
 import matplotlib.pyplot as plt
+from dotenv import load_dotenv
+from loss import dice_coef, dice_loss
+load_dotenv('.env')
 
 HOST = 'localhost'
 PORT = 2000
-MODEL_PATH = os.path.join(os.getcwd(), 'model/model.hdf5')
 
 class Control(object):
     def __init__(self, world) -> None:
         self._control = carla.VehicleControl()
         self._world = world
+        self.model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'BinaryFocalLoss': BinaryFocalLoss})
 
     def control(self, steering, throttle):
         self._control.steer = steering
@@ -23,7 +28,7 @@ class Control(object):
         self._world.player.apply_control(self._control)
 
     def predict(self,image):
-        steer_angle = predict_steering_angle(image=image, model=MODEL_PATH)
+        steer_angle = predict_steering_angle(image=image, model=self.model)
         normalized_angle = steer_angle - 90
 
         normalized_angle = normalized_angle / 90
