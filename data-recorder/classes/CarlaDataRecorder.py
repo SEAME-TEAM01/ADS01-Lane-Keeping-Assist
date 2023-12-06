@@ -151,8 +151,6 @@ class   CarlaDataRecorder(CarlaClient):
         self.reset_counter          = self.dataset_saver.index
 
         print_info(f"{BOLD}[Reset-Vehicle-Position]{RESET} chosen spawnpoint is {self.start_position}, {self.start_position.location}")
-        # for spawn_point in self.map.get_spawn_points():
-        #     print("\tspawn_point:", spawn_point, ", ", spawn_point.location)
         waypoint = self.map.get_waypoint(self.start_position.location)
         print_end()
 
@@ -236,7 +234,7 @@ class   CarlaDataRecorder(CarlaClient):
 
         # Move own vehicle to the next waypoint
         new_waypoint = self.vehicle_manager.move_agent(self.vehicle, self.waypoint_list)
-        print_info(f"{BOLD}[on_gameloop]{RESET} index: {self.dataset_saver.index} waypoint {new_waypoint}")
+        # print_info(f"{BOLD}[on_gameloop]{RESET} index: {self.dataset_saver.index} waypoint {new_waypoint}")
         
         # Detect if junction is ahead
         self.vehicle_manager.detect_junction(self.waypoint_list)
