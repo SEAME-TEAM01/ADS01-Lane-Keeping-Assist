@@ -18,7 +18,7 @@ isCenter = True
 # Calculate and draw 3D Lanes on Juction
 junctionMode = False
 # 
-draw3DLanes = False
+draw3DLanes = True
 
 # Number of images stored in a .npy file
 number_of_images = 100
@@ -44,9 +44,9 @@ for y in range(row_anchor_start, WINDOW_HEIGHT, 10):
 # ------------------------------------------------------
 # - Saver Variables
 # Output for image files
-image_directory = 'data/images/' + CARLA_TOWN + '/'
+image_directory = '../data/images/' + CARLA_TOWN + '/'
 # Path to the image and label files
-label_directory = 'data/dataset/' + CARLA_TOWN + '/'
+label_directory = '../data/dataset/' + CARLA_TOWN + '/'
 train_gt = label_directory + 'train_gt_tmp.json'
 test_gt = label_directory + 'test_gt.json'
 overall_train_gt = label_directory + 'train_gt.json'
