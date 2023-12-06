@@ -148,26 +148,44 @@ def plot_lines(image, left_lane, right_lane, path_points, plot=False):
       plt.show()
     return image_with_line
 
+def display_mask(image, mask):
+  """
+  Displays the image and the mask
+  """
+  plt.figure(figsize=(15, 15))
+  title = ['Input Image', 'Predicted Mask']
+  display_list = [image, mask]
+  for i in range(len(display_list)):
+    plt.subplot(1, len(display_list), i+1)
+    plt.title(title[i])
+    plt.imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
+    plt.axis('off')
+  plt.show()
+  
 
-def predict(image, model=None):
+def predict_steering_angle(image, model=None):
   """
   Predict Steering Angle from Live Image
   """
   img = tf.expand_dims(image, 0)
   pred_mask = model.predict(img)
   mask = create_mask(pred_mask)
+  # display_mask(image, mask)
   lanes_coords = mask_to_coordinates(mask)
   df_lanes = HDBSCAN_cluster(lanes_coords)
   left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes) # return dataframe x, y coordinates
-  path_points = calculate_ideal_path(left_lane=left_lane, right_lane=right_lane)
-  steering_angle = pure_pursuit(reference_path=path_points)
+  # draw_lanes(left_lane=left_lane, right_lane=right_lane)
+  steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
   print(steering_angle)
-  image = plot_lines(image, left_lane, right_lane, path_points)
-  plot_heading_line(image, steering_angle)
+  # display_heading_line(image, left_lane, right_lane, steering_angle)
   return steering_angle
 
-Lane = LaneDataset(train=True)
-SAMPLE_IMAGES = Lane.X_train
-model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
-for img in SAMPLE_IMAGES.take(10):
-  predict(img, model)
+def main():
+  Lane = LaneDataset(train=True)
+  SAMPLE_IMAGES = Lane.X_train
+  model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
+  for img in SAMPLE_IMAGES.take(10):
+    predict_steering_angle(img, model)
+
+# if __name__ == '__main__':
+#   main()

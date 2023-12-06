@@ -3,7 +3,11 @@ model/model.hdf5
 log/
 dataset/*
 _out/
+data/*
+src/_data/
 log/*/summary.txt
+.DS_Store
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
