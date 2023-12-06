@@ -50,7 +50,7 @@ class   LaneMarker():
     
         print_info("LaneMarker initialize done")
         print_end()
-    
+
     def draw_points(self, client, point):
         client.get_world().debug.draw_point(
             point + carla.Location(z=0.05),
@@ -58,7 +58,7 @@ class   LaneMarker():
             life_time = config.number_of_lanepoints / config.FPS,
             persistent_lines = False
         )
-    
+
     def draw_lines(self, client, point0, point1, color):
         if point0 and point1:
             client.get_world().debug.draw_line(
@@ -66,7 +66,7 @@ class   LaneMarker():
                 point1 + carla.Location(z=0.05),
                 thickness = 0.05,
                 color = color,
-                life_time = config.number_of_lanepoitns / config.FPS,
+                life_time = config.number_of_lanepoints / config.FPS,
                 persistent_lines = False
             )
     

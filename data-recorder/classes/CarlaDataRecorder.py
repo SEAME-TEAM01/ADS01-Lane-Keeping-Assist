@@ -81,7 +81,63 @@ class   CarlaDataRecorder(CarlaClient):
         #                         carla.Transform(carla.Location(x=1.8,  z=1.2), carla.Rotation(pitch=-14.5)), # camera 7
         #                         carla.Transform(carla.Location(x=2.17, z=0.9), carla.Rotation(pitch=-14.5)), # camera 8
         #                         carla.Transform(carla.Location(x=2.2,  z=0.7), carla.Rotation(pitch=-11.5))] # camera 9
-        self.camera = carla.Transform(carla.Location(x=2.2,  z=0.7), carla.Rotation(pitch=-11.5))
+        self.camera = carla.Transform(carla.Location(x=1.5,  z=2.0), carla.Rotation(pitch=-14.5))
+
+        self.start_positions = []
+        if config.CARLA_TOWN is "Town02_Opt":
+            self.start_positions.append(
+                [
+                    carla.Transform(
+                        carla.Location(x=193.779999, y=142.190002, z=0.500000),
+                        carla.Rotation(pitch=0.000000, yaw=-89.999817, roll=0.000000)
+                    ),
+                    260
+                ]
+            )
+        elif config.CARLA_TOWN is "Town07_Opt":
+            self.start_positions.append(
+                [
+                    carla.Transform(
+                        carla.Location(x=-24.028019, y=-246.138351, z=0.860913),
+                        carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)
+                    ),
+                    # 200
+                    400
+                ]
+            )
+            self.start_positions.append(
+                [
+                    carla.Transform(
+                        carla.Location(x=82.813736, y=47.457050, z=0.027074),
+                        carla.Rotation(pitch=-0.011598, yaw=-70.911583, roll=-0.000183)
+                    ),
+                    # 30
+                    60
+                ]
+            )
+            self.start_positions.append(
+                [
+                    carla.Transform(
+                        carla.Location(x=61.971699, y=-85.821495, z=6.278840),
+                        carla.Rotation(pitch=4.703701, yaw=-80.328285, roll=0.000000)
+                    ),
+                    # 150
+                    300
+                ]
+            )
+            self.start_positions.append(
+                [
+                    carla.Transform(
+                        carla.Location(x=-59.366730, y=-239.509918, z=3.687235),
+                        carla.Rotation(pitch=4.545931, yaw=-219.917603, roll=0.000000)
+                    ),
+                    # 180
+                    360
+                ]
+            )
+        else:
+            for spawn_point in self.map.get_spawn_points():
+                self.start_positions.append([spawn_point, config.images_until_respawn])
         print_info("CarlaGame initialize done")
         print_end()
 
@@ -90,8 +146,15 @@ class   CarlaDataRecorder(CarlaClient):
         Resets the vehicle's position on the map. reset the agent creates 
         a new route of (number_of_lanepoints) waypoints to follow along. 
         """
-        self.start_position = random.choice(self.map.get_spawn_points())
+        _chosen                     = random.choice(self.start_positions)
+        self.start_position         = _chosen[0]
+        config.images_until_respawn = _chosen[1]
+
+        print_info(f"{BOLD}[Reset-Vehicle-Position]{RESET} chosen spawnpoint is {self.start_position}, {self.start_position.location}")
+        # for spawn_point in self.map.get_spawn_points():
+        #     print("\tspawn_point:", spawn_point, ", ", spawn_point.location)
         waypoint = self.map.get_waypoint(self.start_position.location)
+        print_end()
 
         # Initialize lane deques with a fixed number of lanepoints
         for lane in self.lanes:
@@ -113,6 +176,16 @@ class   CarlaDataRecorder(CarlaClient):
         self.camera_rgb.set_transform(self.camera)
         self.camera_semseg.set_transform(self.camera)
 
+        # if config.draw3DLanes:
+        #     for i, color in enumerate(self.lane_marker.colormap_carla):
+        #         for j in range(0, config.number_of_lanepoints-1):
+        #             self.lane_marker.draw_lines(
+        #                 self.client,
+        #                 lane_markings[i][j],
+        #                 lane_markings[i][j+1],
+        #                 self.lane_marker.colormap_carla[color]
+        #             )
+
     def detect_lanemarkings(self, new_waypoint, image_semseg):
         lanes_list      = []    # filtered 2D-Points
         x_lanes_list    = []    # only x values of lanes
@@ -131,7 +204,7 @@ class   CarlaDataRecorder(CarlaClient):
         
         return lanes_list, x_lanes_list
 
-    def render_display(self, image, image_semseg, lanes_list, render_lanes=False):
+    def render_display(self, image, x_lanes_list, lanes_list, render_lanes=True):
         """
         Renders the images captured from both cameras and shows it on the
         pygame display
@@ -141,7 +214,10 @@ class   CarlaDataRecorder(CarlaClient):
             image_semseg: numpy array. Shows the semantic segmentation image on the pygame display.
         """
         draw_image(self.display, image)
-        #draw_image(self.display, image_semseg, blend=True)
+
+        # image save without lane points
+        if config.isSaving:
+            self.dataset_saver.save(self.display, x_lanes_list)
 
         if render_lanes:
             for i, color in enumerate(self.lane_marker.colormap):
@@ -151,6 +227,10 @@ class   CarlaDataRecorder(CarlaClient):
         
         self.display.blit(self.font.render('% 5d FPS ' % self.clock.get_fps(), True, (255, 255, 255)), (8, 10))
         self.display.blit(self.font.render('Map: ' + config.CARLA_TOWN, True, (255, 255, 255)), (20, 50))
+
+        # # image save with lane points
+        # if config.isSaving:
+        #     self.dataset_saver.save(self.display, x_lanes_list)
 
         pygame.display.flip()
 
@@ -162,14 +242,12 @@ class   CarlaDataRecorder(CarlaClient):
         """
         self.clock.tick()
         
-                # Advance the simulation and wait for the data.
+        # Advance the simulation and wait for the data.
         snapshot, image_rgb, image_semseg = self.sync_mode.tick(timeout=1.0)
 
         # Move own vehicle to the next waypoint
         new_waypoint = self.vehicle_manager.move_agent(self.vehicle, self.waypoint_list)
-        
-        # # Move neighbor vehicles with the same speed as the own vehicle
-        # self.vehicle_manager.move_vehicles(self.waypoint_list)
+        # print_info(f"{BOLD}[on_gameloop]{RESET} index: {self.dataset_saver.index} waypoint {new_waypoint}")
         
         # Detect if junction is ahead
         self.vehicle_manager.detect_junction(self.waypoint_list)
@@ -182,14 +260,11 @@ class   CarlaDataRecorder(CarlaClient):
         lanes_list, x_lanes_list = self.detect_lanemarkings(new_waypoint, image_semseg)
         
         # Render the pygame display and show the lanes accordingly
-        self.render_display(image_rgb, image_semseg, lanes_list)
-
-        # Save images using buffered imagesaver
+        self.render_display(image_rgb, x_lanes_list, lanes_list, config.draw3DLanes)
+        
         if config.isSaving:
-            self.dataset_saver.save(x_lanes_list, self.display)
-            if (not config.junctionMode and self.vehicle_manager.junctionInSightCounter <= 0) or config.junctionMode:
-                if(self.dataset_saver.index % config.images_until_respawn == 0):
-                    self.reset_vehicle_position()
+            if(self.dataset_saver.index % config.images_until_respawn == 0):
+                self.reset_vehicle_position()
 
     def initialize(self):
         self.blueprint_library = self.world.get_blueprint_library()

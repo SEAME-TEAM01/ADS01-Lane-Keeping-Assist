@@ -15,7 +15,6 @@ class   DatasetSaver():
         self.label_file = label_file
         self.image_dir  = image_dir
     
-        self.real_index = 0
         self.index = 0
 
         folder = os.path.dirname(self.label_file)
@@ -30,25 +29,24 @@ class   DatasetSaver():
         print_end()
         
 
-    def save(self, x_lane_list, display):
-        if self.real_index % 4 == 0:
-            image_file = self.image_dir + f'{self.index:04d}' + '.jpg'
-            folder = os.path.dirname(image_file)
-            if not os.path.isdir(folder):
-                os.makedirs(folder)
-            if os.path.exists(image_file):
-                os.remove(image_file)
+    def save(self, display, x_lanes_list):
+        image_file = self.image_dir + f'{self.index:04d}' + '.jpg'
+        folder = os.path.dirname(image_file)
+        if not os.path.isdir(folder):
+            os.makedirs(folder)
+        if os.path.exists(image_file):
+            os.remove(image_file)
 
-            filestring = {"lanes": x_lane_list,
-                        "h_samples": self.h_samples,
-                        "raw_file": image_file}
-            jsonstring = json.dumps(filestring)
-            self.label_file.write(jsonstring + '\n')
+        filestring = {
+            "lanes_x": x_lanes_list,
+            "lane_y": self.h_samples,
+            "image_name": image_file}
+        jsonstring = json.dumps(filestring)
+        self.label_file.write(jsonstring + '\n')
 
-            pygame.image.save(display, f"{image_file}")
-    
-            self.index += 1
-        self.real_index += 1
+        pygame.image.save(display, f"{image_file}")
+
+        self.index += 1
 
     def close_file(self):
         self.label_file.close()
