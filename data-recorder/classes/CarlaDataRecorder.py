@@ -123,8 +123,16 @@ class   CarlaDataRecorder(CarlaClient):
             ])
         elif config.CARLA_TOWN is "Town10HD_Opt":
             self.start_positions.append([
-                carla.Transform(carla.Location(x=-85.302979, y=156.585388, z=0.003271),carla.Rotation(pitch=0.000376, yaw=87.022415, roll=0.000014)),
-                270
+                carla.Transform(carla.Location(x=-114.218651, y=41.329021, z=0.002613), carla.Rotation(pitch=0.128858, yaw=90.870064, roll=-0.008606)),
+                310
+            ])
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=106.213867, y=0.070332, z=-0.001398), carla.Rotation(pitch=-0.004426, yaw=-90.735901, roll=-0.000000)),
+                80
+            ])
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=101.876251, y=58.557976, z=0.003270), carla.Rotation(pitch=0.000417, yaw=90.004517, roll=0.000000)),
+                310
             ])
         else:
             for spawn_point in self.map.get_spawn_points():
