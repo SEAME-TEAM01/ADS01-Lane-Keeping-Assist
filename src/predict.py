@@ -1,4 +1,5 @@
 import os
+import math
 import numpy as np
 import cv2
 import tensorflow as tf
@@ -39,22 +40,58 @@ def extract_current_lanes(df_lanes=None, width=512):
 
   return left_lane_cluster, right_lane_cluster
 
+def calculate_quadratic_coefficients(lane):
+    """
+    Fits a quadratic polynomial to the lane points and returns the coefficients.
+    """
+    # Fit a 2nd degree polynomial to the lane points
+    poly_fit = np.polyfit(lane['y'], lane['x'], 2)
+    return poly_fit
 
-def calculate_steer_angle(left_lane=None, right_lane=None, width=512, height=256):
+def calculate_ideal_path(left_lane=None, right_lane=None, height=256):
   """
-  Calculates the steering angle based on the predicted mask
+  Calculates the ideal path from the left and right lanes
   """
-  mid = width // 2
-  left_mid_x = left_lane['x'].mean()
-  right_mid_x = right_lane['x'].mean()
+  if (left_lane is None) and (right_lane is None):
+    return []
 
-  x_offset = (left_mid_x + right_mid_x) / 2 - mid
-  y_offset = int(height * 0.6)
+  left_fit = calculate_quadratic_coefficients(left_lane)
+  right_fit = calculate_quadratic_coefficients(right_lane)
 
-  angle_to_mid_radian = np.arctan(x_offset / y_offset)
-  angle_to_mid_deg = np.degrees(angle_to_mid_radian)
-  steering_angle = angle_to_mid_deg + 90
-  return steering_angle
+  ideal_path = (left_fit + right_fit) / 2
+
+  lane_y_min = left_lane['y'].min()
+  y_vals = np.arange(lane_y_min, height, 1)
+  ideal_path_x = (ideal_path[0] * y_vals ** 2 + ideal_path[1] * y_vals + ideal_path[2]).astype(np.int32)
+
+  ideal_path = list(zip(ideal_path_x, y_vals))
+
+  return ideal_path
+
+def pure_pursuit(reference_path=None, width=512, height=256):
+  """
+  Calculates the steering angle based on the reference path
+  """
+
+  if reference_path is None:
+    return None
+
+  vehicle_position = (width // 2, height)
+  lookahead_distance = 100 # should be dynamic based on speed
+
+  lookahead_point = None
+  for point in reversed(reference_path):
+    distance = vehicle_position[1] - point[1] # should be Euclidean Algorithm but this doesn't work sometimes for some reason
+    if  distance >= lookahead_distance:
+      lookahead_point = point
+      break
+
+  if lookahead_point is None:
+    return None
+
+  print(lookahead_point)
+  angle_to_lookahead_radian = np.arctan2(vehicle_position[1] - lookahead_point[1], lookahead_point[0] - vehicle_position[0])
+  return angle_to_lookahead_radian
 
 
 def mask_to_coordinates(mask):
@@ -68,27 +105,20 @@ def mask_to_coordinates(mask):
   coords = list(zip(x, y))
   return coords
 
-def draw_lanes(lanes=None, left_lane=None, right_lane=None):
+def plot_heading_line(image, steering_angle, width=512, height=256):
   """
-  Draws the lanes on the image
-  """
-  background = np.zeros((256, 512), dtype=np.uint8)
-  if lanes is None:
-    for x, y in zip(left_lane['x'], left_lane['y']):
-      background[y, x] = 255
-    for x, y in zip(right_lane['x'], right_lane['y']):
-      background[y, x] = 255
 
-  if (left_lane is None) and (right_lane is None):
-    background = np.zeros((256, 512), dtype=np.uint8)
-    for x, y in lanes:
-      background[y, x] = 255
-  plt.imshow(background)
+  """
+  center_x, center_y = width // 2, height
+  line_length = height // 3
+  end_x = int(center_x + line_length * np.cos(steering_angle))
+  end_y = int(center_y - line_length * np.sin(steering_angle))
+  image = cv2.line(image, (center_x, center_y), (end_x, end_y), (0, 255, 0), 2)
+  plt.imshow(image)
   plt.show()
-  return background
 
 
-def display_heading_line(image, left_lane, right_lane, steering_angle):
+def plot_lines(image, left_lane, right_lane, path_points, plot=False):
     """
     Draws heading line on the image based on left and right lane coordinates and steering angle.
 
@@ -108,19 +138,15 @@ def display_heading_line(image, left_lane, right_lane, steering_angle):
     for x, y in zip(right_lane['x'], right_lane['y']):
       image_with_line[y, x] = 255
 
-    height, width = image_with_line.shape[:2]
-    center_x, center_y = width // 2, height
-    line_length = height // 3  # Adjust the length of the heading line as needed
-    angle_radians = np.deg2rad(180 - steering_angle)  # Convert to radians
+    x_coords, y_coords = zip(*path_points)
+    x_coords_selected = x_coords[::10]
+    y_coords_selected = y_coords[::10]
 
-    # Calculate end point of the heading line
-    end_x = int(center_x + line_length * np.cos(angle_radians))
-    end_y = int(center_y - line_length * np.sin(angle_radians))
-
-    image_with_line = cv2.line(image_with_line, (center_x, center_y), (end_x, end_y), (0, 0, 255), 3)
-
+    plt.plot(x_coords_selected, y_coords_selected, 'o', markersize=5, linewidth=2, color='green')
     plt.imshow(image_with_line)
-    plt.show()
+    if (plot):
+      plt.show()
+    return image_with_line
 
 def display_mask(image, mask):
   """

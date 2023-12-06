@@ -2,7 +2,6 @@
 model/model.hdf5
 log/
 dataset/*
-carla/
 _out/
 data/*
 src/_data/
