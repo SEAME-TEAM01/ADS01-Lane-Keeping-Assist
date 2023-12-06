@@ -62,15 +62,20 @@ class   CarlaDataRecorder(CarlaClient):
 
         # output setting
         self.actor_list     = []
+        self.reset_counter  = 0
         
         # manager setting
         self.lane_marker    = LaneMarker(self.lanes)
         self.vehicle_manager= VehicleManager()
         self.dataset_saver  = DatasetSaver(
+                                config.CARLA_TOWN,
                                 config.h_samples, 
                                 config.label_directory,
                                 config.train_gt,
-                                config.image_directory)
+                                config.image_directory,
+                                config.WINDOW_WIDTH,
+                                config.WINDOW_HEIGHT,
+                                config.masks_directory)
 
         # self.camera_transforms=[carla.Transform(carla.Location(x=0.0,  z=3.2), carla.Rotation(pitch=-19.5)), # camera 1
         #                         carla.Transform(carla.Location(x=0.0,  z=2.8), carla.Rotation(pitch=-18.5)), # camera 2
@@ -84,57 +89,43 @@ class   CarlaDataRecorder(CarlaClient):
         self.camera = carla.Transform(carla.Location(x=1.5,  z=2.0), carla.Rotation(pitch=-14.5))
 
         self.start_positions = []
-        if config.CARLA_TOWN is "Town02_Opt":
-            self.start_positions.append(
-                [
-                    carla.Transform(
-                        carla.Location(x=193.779999, y=142.190002, z=0.500000),
-                        carla.Rotation(pitch=0.000000, yaw=-89.999817, roll=0.000000)
-                    ),
-                    260
-                ]
-            )
+        if config.CARLA_TOWN is "":
+            raise RuntimeError("CARLA_TOWN is not defined")
+        elif config.CARLA_TOWN is "Town03_Opt":
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=-85.302979, y=156.585388, z=0.003271),carla.Rotation(pitch=0.000376, yaw=87.022415, roll=0.000014)),
+                270
+            ])
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=241.111710, y=35.939137, z=0.018846),carla.Rotation(pitch=0.001667, yaw=-86.087097, roll=0.000035)),
+                270
+            ])
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=169.453049, y=-194.047333, z=-0.021909),carla.Rotation(pitch=0.038147, yaw=-0.862884, roll=-0.000122)),
+                270
+            ])
         elif config.CARLA_TOWN is "Town07_Opt":
-            self.start_positions.append(
-                [
-                    carla.Transform(
-                        carla.Location(x=-24.028019, y=-246.138351, z=0.860913),
-                        carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)
-                    ),
-                    # 200
-                    400
-                ]
-            )
-            self.start_positions.append(
-                [
-                    carla.Transform(
-                        carla.Location(x=82.813736, y=47.457050, z=0.027074),
-                        carla.Rotation(pitch=-0.011598, yaw=-70.911583, roll=-0.000183)
-                    ),
-                    # 30
-                    60
-                ]
-            )
-            self.start_positions.append(
-                [
-                    carla.Transform(
-                        carla.Location(x=61.971699, y=-85.821495, z=6.278840),
-                        carla.Rotation(pitch=4.703701, yaw=-80.328285, roll=0.000000)
-                    ),
-                    # 150
-                    300
-                ]
-            )
-            self.start_positions.append(
-                [
-                    carla.Transform(
-                        carla.Location(x=-59.366730, y=-239.509918, z=3.687235),
-                        carla.Rotation(pitch=4.545931, yaw=-219.917603, roll=0.000000)
-                    ),
-                    # 180
-                    360
-                ]
-            )
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=-24.028019, y=-246.138351, z=0.860913),carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)),
+                200
+            ])
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=82.813736, y=47.457050, z=0.027074),carla.Rotation(pitch=-0.011598, yaw=-70.911583, roll=-0.000183)), 
+                30
+            ])
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=61.971699, y=-85.821495, z=6.278840),carla.Rotation(pitch=4.703701, yaw=-80.328285, roll=0.000000)),
+                150
+            ])
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=-59.366730, y=-239.509918, z=3.687235),carla.Rotation(pitch=4.545931, yaw=-219.917603, roll=0.000000)),
+                180
+            ])
+        elif config.CARLA_TOWN is "Town10HD_Opt":
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=-85.302979, y=156.585388, z=0.003271),carla.Rotation(pitch=0.000376, yaw=87.022415, roll=0.000014)),
+                270
+            ])
         else:
             for spawn_point in self.map.get_spawn_points():
                 self.start_positions.append([spawn_point, config.images_until_respawn])
@@ -149,6 +140,7 @@ class   CarlaDataRecorder(CarlaClient):
         _chosen                     = random.choice(self.start_positions)
         self.start_position         = _chosen[0]
         config.images_until_respawn = _chosen[1]
+        self.reset_counter          = self.dataset_saver.index
 
         print_info(f"{BOLD}[Reset-Vehicle-Position]{RESET} chosen spawnpoint is {self.start_position}, {self.start_position.location}")
         # for spawn_point in self.map.get_spawn_points():
@@ -166,7 +158,6 @@ class   CarlaDataRecorder(CarlaClient):
 
         for i in range(0, config.number_of_lanepoints):
             self.waypoint_list.append(waypoint.next(i + config.meters_per_frame)[0])
-        
         for lanepoint in self.waypoint_list:
             lane_markings = self.lane_marker.calculate3DLanepoints(
                 self.client,
@@ -175,16 +166,6 @@ class   CarlaDataRecorder(CarlaClient):
 
         self.camera_rgb.set_transform(self.camera)
         self.camera_semseg.set_transform(self.camera)
-
-        # if config.draw3DLanes:
-        #     for i, color in enumerate(self.lane_marker.colormap_carla):
-        #         for j in range(0, config.number_of_lanepoints-1):
-        #             self.lane_marker.draw_lines(
-        #                 self.client,
-        #                 lane_markings[i][j],
-        #                 lane_markings[i][j+1],
-        #                 self.lane_marker.colormap_carla[color]
-        #             )
 
     def detect_lanemarkings(self, new_waypoint, image_semseg):
         lanes_list      = []    # filtered 2D-Points
@@ -247,7 +228,7 @@ class   CarlaDataRecorder(CarlaClient):
 
         # Move own vehicle to the next waypoint
         new_waypoint = self.vehicle_manager.move_agent(self.vehicle, self.waypoint_list)
-        # print_info(f"{BOLD}[on_gameloop]{RESET} index: {self.dataset_saver.index} waypoint {new_waypoint}")
+        print_info(f"{BOLD}[on_gameloop]{RESET} index: {self.dataset_saver.index} waypoint {new_waypoint}")
         
         # Detect if junction is ahead
         self.vehicle_manager.detect_junction(self.waypoint_list)
@@ -263,7 +244,7 @@ class   CarlaDataRecorder(CarlaClient):
         self.render_display(image_rgb, x_lanes_list, lanes_list, config.draw3DLanes)
         
         if config.isSaving:
-            if(self.dataset_saver.index % config.images_until_respawn == 0):
+            if(self.dataset_saver.index % (config.images_until_respawn + self.reset_counter) == 0):
                 self.reset_vehicle_position()
 
     def initialize(self):
