@@ -122,6 +122,20 @@ def display_heading_line(image, left_lane, right_lane, steering_angle):
     plt.imshow(image_with_line)
     plt.show()
 
+def display_mask(image, mask):
+  """
+  Displays the image and the mask
+  """
+  plt.figure(figsize=(15, 15))
+  title = ['Input Image', 'Predicted Mask']
+  display_list = [image, mask]
+  for i in range(len(display_list)):
+    plt.subplot(1, len(display_list), i+1)
+    plt.title(title[i])
+    plt.imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
+    plt.axis('off')
+  plt.show()
+  
 
 def predict_steering_angle(image, model=None):
   """
@@ -130,6 +144,7 @@ def predict_steering_angle(image, model=None):
   img = tf.expand_dims(image, 0)
   pred_mask = model.predict(img)
   mask = create_mask(pred_mask)
+  # display_mask(image, mask)
   lanes_coords = mask_to_coordinates(mask)
   df_lanes = HDBSCAN_cluster(lanes_coords)
   left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes) # return dataframe x, y coordinates
