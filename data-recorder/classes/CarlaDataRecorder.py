@@ -90,8 +90,32 @@ class   CarlaDataRecorder(CarlaClient):
         Resets the vehicle's position on the map. reset the agent creates 
         a new route of (number_of_lanepoints) waypoints to follow along. 
         """
-        self.start_position = random.choice(self.map.get_spawn_points())
+        start_positions = []
+        if config.CARLA_TOWN is "Town07_Opt":
+            start_positions.append(
+                carla.Transform(
+                    carla.Location(x=-129.492340, y=116.304527, z=0.300000),
+                    carla.Rotation(pitch=0.000000, yaw=6.740970, roll=0.000000)
+                )
+            )
+        elif config.CARLA_TOWN is "Town02_Opt":
+            start_positions.append(
+                carla.Transform(
+                    carla.Location(x=193.779999, y=142.190002, z=0.500000),
+                    carla.Rotation(pitch=0.000000, yaw=-89.999817, roll=0.000000)
+                )
+            )
+            config.images_until_respawn = 65
+        else:
+            start_positions = self.map.get_spawn_points()
+
+        self.start_position = random.choice(start_positions)
+
+        print_info(f"{BOLD}[Reset-Vehicle-Position]{RESET} chosen spawnpoint is {self.start_position}, {self.start_position.location}")
+        # for spawn_point in self.map.get_spawn_points():
+        #     print("\tspawn_point:", spawn_point, ", ", spawn_point.location)
         waypoint = self.map.get_waypoint(self.start_position.location)
+        print_end()
 
         # Initialize lane deques with a fixed number of lanepoints
         for lane in self.lanes:
@@ -162,14 +186,12 @@ class   CarlaDataRecorder(CarlaClient):
         """
         self.clock.tick()
         
-                # Advance the simulation and wait for the data.
+        # Advance the simulation and wait for the data.
         snapshot, image_rgb, image_semseg = self.sync_mode.tick(timeout=1.0)
 
         # Move own vehicle to the next waypoint
         new_waypoint = self.vehicle_manager.move_agent(self.vehicle, self.waypoint_list)
-        
-        # # Move neighbor vehicles with the same speed as the own vehicle
-        # self.vehicle_manager.move_vehicles(self.waypoint_list)
+        print_info(f"{BOLD}[on_gameloop]{RESET} new_waypoint: {new_waypoint}")
         
         # Detect if junction is ahead
         self.vehicle_manager.detect_junction(self.waypoint_list)
@@ -187,9 +209,9 @@ class   CarlaDataRecorder(CarlaClient):
         # Save images using buffered imagesaver
         if config.isSaving:
             self.dataset_saver.save(x_lanes_list, self.display)
-            if (not config.junctionMode and self.vehicle_manager.junctionInSightCounter <= 0) or config.junctionMode:
-                if(self.dataset_saver.index % config.images_until_respawn == 0):
-                    self.reset_vehicle_position()
+            # if (not config.junctionMode and self.vehicle_manager.junctionInSightCounter <= 0) or config.junctionMode:
+            if(self.dataset_saver.index % config.images_until_respawn == 0):
+                self.reset_vehicle_position()
 
     def initialize(self):
         self.blueprint_library = self.world.get_blueprint_library()
