@@ -5,7 +5,7 @@ import cv2
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import tensorflow.keras as keras
-from clustering import HDBSCAN_cluster
+from clustering import HDBSCAN_cluster,visualize_cluster
 from dataset import LaneDataset
 from dotenv import load_dotenv
 from loss import dice_coef, dice_loss
@@ -14,6 +14,9 @@ load_dotenv('.env')
 def create_mask(pred_mask):
   mask = pred_mask[..., -1] >= 0.5
   pred_mask[..., -1] = tf.where(mask, 1, 0)
+  
+  # only if you drive on highway this is not needed
+  pred_mask[0, :150, :, :] = 0
   return pred_mask[0]
 
 def extract_current_lanes(df_lanes=None, width=512):
@@ -169,15 +172,16 @@ def predict_steering_angle(image, model=None):
   """
   img = tf.expand_dims(image, 0)
   pred_mask = model.predict(img)
-  mask = create_mask(pred_mask)
-  # display_mask(image, mask)
+  mask = create_mask(pred_mask)  
+  display_mask(image, mask)
   lanes_coords = mask_to_coordinates(mask)
   df_lanes = HDBSCAN_cluster(lanes_coords)
-  left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes) # return dataframe x, y coordinates
+  # visualize_cluster(df_lanes)
+  left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes)
   # draw_lanes(left_lane=left_lane, right_lane=right_lane)
   steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
   print(steering_angle)
-  # display_heading_line(image, left_lane, right_lane, steering_angle)
+  display_heading_line(image, left_lane, right_lane, steering_angle)
   return steering_angle
 
 def main():
