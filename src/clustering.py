@@ -25,7 +25,6 @@ def HDBSCAN_cluster(lanes):
   lanes_df['cluster'] = cluster_labels
   return lanes_df
 
-
 def lanes_to_dataframe(lanes):
     """
     Converts a list of lane coordinates to a Pandas DataFrame.
@@ -37,14 +36,6 @@ def lanes_to_dataframe(lanes):
     df = df.reset_index(drop=True)
     return df
 
-def test():
-  Lane = LaneDataset(train=False)
-  SAMPLE_IMAGES = Lane.X_train
-  model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
-  # lanes = test_predict(SAMPLE_IMAGES, model)
-  lanes =[]
-  for lane in lanes:
-    df = HDBSCAN_cluster(lane)
-    print(df.head(n=50))
-    plt.scatter(df['x'], df['y'], c=df['cluster'], cmap='rainbow')
-    plt.show()
+def visualize_cluster(df):
+  plt.scatter(df['x'], df['y'], c=df['cluster'], cmap='rainbow')
+  plt.show()
