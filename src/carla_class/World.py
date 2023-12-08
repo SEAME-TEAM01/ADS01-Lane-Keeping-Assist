@@ -1,9 +1,11 @@
 import re
+import os
 import random
 import carla
 import pygame
 import numpy as np
 import cv2
+import tensorflow as tf
 from queue import Queue
 
 class World(object):
@@ -19,19 +21,26 @@ class World(object):
         self._weather_presets = find_weather_presets()
         self._weather_index = 0
         self._actor_filter = actor_filter
-        self.restart()
+        self.start_positions = [
+            carla.Transform(carla.Location(x=-24.028019, y=-246.138351, z=0.860913),carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)),
+            carla.Transform(carla.Location(x=82.813736, y=47.457050, z=0.027074),carla.Rotation(pitch=-0.011598, yaw=-70.911583, roll=-0.000183)),
+            carla.Transform(carla.Location(x=61.971699, y=-85.821495, z=6.278840),carla.Rotation(pitch=4.703701, yaw=-80.328285, roll=0.000000)),
+            carla.Transform(carla.Location(x=-59.366730, y=-239.509918, z=3.687235),carla.Rotation(pitch=4.545931, yaw=-219.917603, roll=0.000000))    
+        ]
         self.world.on_tick(hud.on_world_tick)
         self.img_queue = Queue(maxsize=100000)
         
+        self.restart()
         cam_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
-        cam_bp.set_attribute("image_size_x",str(1024))
-        cam_bp.set_attribute("image_size_y",str(512))
-        cam_bp.set_attribute("fov",str(105))
-        cam_location = carla.Location(2,0,1.5)
+        cam_bp.set_attribute("image_size_x",str(512))
+        cam_bp.set_attribute("image_size_y",str(256))
+        cam_bp.set_attribute("fov",str(90))
+        cam_location = carla.Location(4,0,1.0)
         cam_rotation = carla.Rotation(0,0,0)
         cam_transform = carla.Transform(cam_location,cam_rotation)
         self.sensor = self.world.spawn_actor(cam_bp,cam_transform,attach_to=self.player, attachment_type=carla.AttachmentType.Rigid)
         self.sensor.listen(lambda image: self.process_image(image))
+        
 
     def restart(self):
         # Keep same camera config if the camera manager exists.
@@ -52,8 +61,7 @@ class World(object):
             self.destroy()
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
         while self.player is None:
-            spawn_points = self.world.get_map().get_spawn_points()
-            spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            spawn_point = random.choice(self.start_positions)
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
         # Set up the sensors.
         self.collision_sensor = CollisionSensor(self.player, self.hud)
@@ -93,14 +101,14 @@ class World(object):
             self.player.destroy()
 
     def process_image(self, image):
-      array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
-      array = np.reshape(array, (image.height, image.width, 4))
-    #   image.save_to_disk('_data/%.6d.jpg' % image.frame)
+        image.save_to_disk('_out/%08d.jpeg' % image.frame)
+        img = tf.io.read_file('_out/%08d.jpeg' % image.frame)
+        os.remove('_out/%08d.jpeg' % image.frame)
+        img = tf.image.decode_jpeg(img, channels=3) 
+        img = tf.image.convert_image_dtype(img, tf.float32)
+        img = tf.image.resize(img, [256, 512], method='nearest')
+        self.img_queue.put(img)
 
-      array = array[:, :, :3]
-      array = cv2.resize(array, (512, 256))
-      self.img_queue.put(array)
-      return array
 
 def find_weather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')

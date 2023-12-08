@@ -143,7 +143,7 @@ def predict_steering_angle(image, model=None):
   """
   img = tf.expand_dims(image, 0)
   pred_mask = model.predict(img)
-  mask = create_mask(pred_mask)
+  mask = create_mask(pred_mask)  
   # display_mask(image, mask)
   lanes_coords = mask_to_coordinates(mask)
   df_lanes = HDBSCAN_cluster(lanes_coords)
@@ -152,7 +152,7 @@ def predict_steering_angle(image, model=None):
   steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
   print(steering_angle)
   # display_heading_line(image, left_lane, right_lane, steering_angle)
-  return steering_angle
+  return 90
 
 def main():
   Lane = LaneDataset(train=True)
