@@ -11,6 +11,7 @@ CLIENT_TIMEOUT = 40.0
 LANE_DETECTION_TIMEOUT = 30.0
 NEIGHTBOR_VEHICLES_MODE = False
 
+debugMode = True
 noRendering = True
 # Save images and labels on disk
 isSaving = True
@@ -44,7 +45,7 @@ for y in range(row_anchor_start, WINDOW_HEIGHT, 10):
 
 # ------------------------------------------------------
 # - Saver Variables
-dataset_directory = '../../ADS01-Lane-Keeping-Assist-Dataset/test_dataset/'
+dataset_directory = '../../dataset/datasetv2/trainset/'
 image_directory = dataset_directory + 'images/'
 label_directory = dataset_directory + 'labels/'
 masks_directory = dataset_directory + 'masks/'

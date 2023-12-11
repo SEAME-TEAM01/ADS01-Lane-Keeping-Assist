@@ -81,12 +81,12 @@ class   CarlaDataRecorder(CarlaClient):
                                 config.WINDOW_HEIGHT,
                                 config.masks_directory)
 
-        self.camera = carla.Transform(carla.Location(x=1.5,  z=2.0), carla.Rotation(pitch=-14.5))
+        self.camera = carla.Transform(carla.Location(x=1.6, z=1.7))
 
         self.start_positions = []
-        if config.CARLA_TOWN is "":
+        if config.CARLA_TOWN == "":
             raise RuntimeError("CARLA_TOWN is not defined")
-        elif config.CARLA_TOWN is "Town03_Opt":
+        elif config.CARLA_TOWN == "Town03_Opt":
             self.start_positions.append([
                 carla.Transform(carla.Location(x=-85.302979, y=156.585388, z=0.003271),carla.Rotation(pitch=0.000376, yaw=87.022415, roll=0.000014)),
                 270
@@ -99,7 +99,7 @@ class   CarlaDataRecorder(CarlaClient):
                 carla.Transform(carla.Location(x=169.453049, y=-194.047333, z=-0.021909),carla.Rotation(pitch=0.038147, yaw=-0.862884, roll=-0.000122)),
                 270
             ])
-        elif config.CARLA_TOWN is "Town07_Opt":
+        elif config.CARLA_TOWN == "Town07_Opt":
             self.start_positions.append([
                 carla.Transform(carla.Location(x=-24.028019, y=-246.138351, z=0.860913),carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)),
                 200
@@ -116,12 +116,12 @@ class   CarlaDataRecorder(CarlaClient):
                 carla.Transform(carla.Location(x=-59.366730, y=-239.509918, z=3.687235),carla.Rotation(pitch=4.545931, yaw=-219.917603, roll=0.000000)),
                 180
             ])
-        elif config.CARLA_TOWN is "Town06_Opt":
+        elif config.CARLA_TOWN == "Town06_Opt":
             self.start_positions.append([
                 carla.Transform(carla.Location(x=386.040741, y=38.276459, z=-0.005049), carla.Rotation(pitch=-0.003511, yaw=-0.027893, roll=0.000000)), 
                 400
             ])
-        elif config.CARLA_TOWN is "Town10HD_Opt":
+        elif config.CARLA_TOWN == "Town10HD_Opt":
             self.start_positions.append([
                 carla.Transform(carla.Location(x=-114.218651, y=41.329021, z=0.002613), carla.Rotation(pitch=0.128858, yaw=90.870064, roll=-0.008606)),
                 310
@@ -134,9 +134,17 @@ class   CarlaDataRecorder(CarlaClient):
                 carla.Transform(carla.Location(x=101.876251, y=58.557976, z=0.003270), carla.Rotation(pitch=0.000417, yaw=90.004517, roll=0.000000)),
                 310
             ])
-        elif config.CARLA_TOWN is "Town11":
+        elif config.CARLA_TOWN == "Town11":
             self.start_positions.append([
-                carla.Transform(carla.Location(x=-588.375122, y=2308.134521, z=92.191521), carla.Rotation(pitch=-1.072818, yaw=-39.323952, roll=0.006801)),
+                carla.Transform(carla.Location(x=6670.942871, y=-2696.028076, z=58.645386), carla.Rotation(pitch=0.241741, yaw=21.042400, roll=0.002043)),
+                400
+            ])
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=6939.931641, y=-697.460632, z=44.007175), carla.Rotation(pitch=0.953829, yaw=24.504562, roll=0.016194)),
+                400
+            ])
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=7285.354980, y=-2869.584229, z=60.661160), carla.Rotation(pitch=-4.150453, yaw=96.144508, roll=0.188755)),
                 400
             ])
         else:
@@ -146,6 +154,7 @@ class   CarlaDataRecorder(CarlaClient):
         print_end()
 
     def reset_vehicle_position(self):
+        print_debug("CarlaGame reset_vehicle_position")
         """
         Resets the vehicle's position on the map. reset the agent creates 
         a new route of (number_of_lanepoints) waypoints to follow along. 
@@ -179,6 +188,7 @@ class   CarlaDataRecorder(CarlaClient):
         self.camera_semseg.set_transform(self.camera)
 
     def detect_lanemarkings(self, new_waypoint, image_semseg):
+        print_debug("CarlaGame detect_lanemarkings")
         lanes_list      = []    # filtered 2D-Points
         x_lanes_list    = []    # only x values of lanes
         lanes_3Dcoords  = self.lane_marker.calculate3DLanepoints(
@@ -197,6 +207,7 @@ class   CarlaDataRecorder(CarlaClient):
         return lanes_list, x_lanes_list
 
     def render_display(self, image, x_lanes_list, lanes_list, render_lanes=True):
+        print_debug("CarlaGame render_display")
         """
         Renders the images captured from both cameras and shows it on the
         pygame display
@@ -221,12 +232,13 @@ class   CarlaDataRecorder(CarlaClient):
         self.display.blit(self.font.render('Map: ' + config.CARLA_TOWN, True, (255, 255, 255)), (20, 50))
 
         # # image save with lane points
-        # if config.isSaving:
-        #     self.dataset_saver.save(self.display, x_lanes_list)
+        if config.isSaving:
+            self.dataset_saver.save(self.display, x_lanes_list)
 
         pygame.display.flip()
 
     def on_gameloop(self):
+        print_debug("CarlaGame on_gameloop")
         """
         Determines the logic of movement and what should happen every frame. 
         Also adds an image to the image saver and the corresponding label to the label saver, if the frame is meant to be saved. 
@@ -239,7 +251,7 @@ class   CarlaDataRecorder(CarlaClient):
 
         # Move own vehicle to the next waypoint
         new_waypoint = self.vehicle_manager.move_agent(self.vehicle, self.waypoint_list)
-        # print_info(f"{BOLD}[on_gameloop]{RESET} index: {self.dataset_saver.index} waypoint {new_waypoint}")
+        print_info(f"{BOLD}[on_gameloop]{RESET} index: {self.dataset_saver.index} waypoint {new_waypoint}")
         
         # Detect if junction is ahead
         self.vehicle_manager.detect_junction(self.waypoint_list)
@@ -259,37 +271,48 @@ class   CarlaDataRecorder(CarlaClient):
                 self.reset_vehicle_position()
 
     def initialize(self):
+        print_debug("CarlaGame initialize")
         self.blueprint_library = self.world.get_blueprint_library()
+        # self.start_position = random.choice(self.start_positions)[0]
         self.start_position = random.choice(self.map.get_spawn_points())
+        print_debug("CarlaGame initialize start_position")
         self.vehicle = self.world.spawn_actor(random.choice(self.blueprint_library.filter("vehicle.ford.mustang")), self.start_position)
         self.actor_list.append(self.vehicle)
-        self.vehicle.set_simulate_physics(False)
-
+        # self.vehicle.set_simulate_physics(False)
+        print_debug("CarlaGame initialize vehicle spawned")
         self.bp_camera_rgb = self.blueprint_library.find("sensor.camera.rgb")
         self.bp_camera_rgb.set_attribute("image_size_x", f"{config.WINDOW_WIDTH}")
         self.bp_camera_rgb.set_attribute("image_size_y", f"{config.WINDOW_HEIGHT}")
-        self.bp_camera_rgb.set_attribute("fov",          f"{config.FOV}")
+        # self.bp_camera_rgb.set_attribute("fov",          f"{config.FOV}")
+        print_debug("CarlaGame initialize camera_rgb")
         self.camera_rgb_spawnpoint = self.camera
+        print_debug("CarlaGame initialize camera_rgb_spawnpoint")
         self.camera_rgb = self.world.spawn_actor(
             self.bp_camera_rgb,
             self.camera_rgb_spawnpoint,
             attach_to=self.vehicle)
+        print_debug("CarlaGame initialize camera_rgb")
         self.actor_list.append(self.camera_rgb)
-
+        print_debug("CarlaGame initialize camera spawned")
         self.bp_camera_semseg = self.blueprint_library.find("sensor.camera.semantic_segmentation")
         self.bp_camera_semseg.set_attribute("image_size_x", f"{config.WINDOW_WIDTH}")
         self.bp_camera_semseg.set_attribute("image_size_y", f"{config.WINDOW_HEIGHT}")
         self.bp_camera_semseg.set_attribute("fov",          f"{config.FOV}")
+        print_debug("CarlaGame initialize camera_semseg")
         self.camera_semseg_spawnpoint = self.camera
+        print_debug("CarlaGame initialize camera_semseg_spawnpoint")
         self.camera_semseg = self.world.spawn_actor(
             self.bp_camera_semseg,
             self.camera_semseg_spawnpoint,
             attach_to=self.vehicle)
+        print_debug("CarlaGame initialize camera_semseg")
         self.actor_list.append(self.camera_semseg)
+        print_debug("CarlaGame initialize camera_semseg spawned")
 
         self.reset_vehicle_position()
 
     def launch(self):
+        print_debug("CarlaGame launch")
         try:
             self.initialize()
 
