@@ -83,7 +83,7 @@ class   DatasetSaver():
                 y = ys[i]
                 if i > 0:
                     prev_x, prev_y = xs[i-1], ys[i-1]
-                    cv2.line(mask_src, (prev_x, prev_y), (x, y), color=(255, 255, 255), thickness=5)
+                    cv2.line(mask_src, (prev_x, prev_y), (x, y), color=(255, 255, 255), thickness=15)
         cv2.imwrite(mask, mask_src)
 
         self.index += 1

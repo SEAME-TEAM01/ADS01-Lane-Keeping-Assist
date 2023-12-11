@@ -49,7 +49,7 @@ class   CarlaDataRecorder(CarlaClient):
         super().__init__(args)
         self.lanes          = lanes
         settings = self.world.get_settings()
-        if config.noRendering is True:
+        if config.noRendering == True:
             settings.no_rendering_mode = True
         self.world.apply_settings(settings)
         
@@ -84,6 +84,8 @@ class   CarlaDataRecorder(CarlaClient):
         self.camera = carla.Transform(carla.Location(x=1.6, z=1.7))
 
         self.start_positions = []
+        self.start_positions_index = 0
+        self.testset_positions = []
         if config.CARLA_TOWN == "":
             raise RuntimeError("CARLA_TOWN is not defined")
         elif config.CARLA_TOWN == "Town03_Opt":
@@ -147,6 +149,31 @@ class   CarlaDataRecorder(CarlaClient):
                 carla.Transform(carla.Location(x=7285.354980, y=-2869.584229, z=60.661160), carla.Rotation(pitch=-4.150453, yaw=96.144508, roll=0.188755)),
                 400
             ])
+        elif config.CARLA_TOWN == "Town15":
+            # self.start_positions.append([ # park - path 1
+            #     carla.Transform(carla.Location(x=728.285461, y=694.559021, z=117.997192), carla.Rotation(pitch=-0.052524, yaw=-59.337170, roll=-0.078735)),
+            #     180,
+            # ])
+            # self.start_positions.append([ # park - path 2
+            #     carla.Transform(carla.Location(x=723.046753, y=742.126831, z=117.998192), carla.Rotation(pitch=0.094332, yaw=32.755676, roll=0.041595)),
+            #     600,
+            # ])
+            # self.start_positions.append([ # park - path 3
+            #     carla.Transform(carla.Location(x=482.678711, y=794.510864, z=122.868706), carla.Rotation(pitch=-0.732668, yaw=-11.800282, roll=-0.021667)),
+            #     230,
+            # ])
+            # self.start_positions.append([
+            #     carla.Transform(carla.Location(x=273.497955, y=-340.431702, z=152.580505), carla.Rotation(pitch=-0.350040, yaw=-137.467239, roll=-0.006622)),
+            #     450
+            # ])
+            # self.start_positions.append([
+            #     carla.Transform(carla.Location(x=-196.286896, y=-613.031799, z=158.521622), carla.Rotation(pitch=3.988202, yaw=14.457486, roll=0.295075)),
+            #     600
+            # ])
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=-109.906685, y=127.888123, z=151.391724), carla.Rotation(pitch=-0.984428, yaw=-42.932205, roll=0.088353)),
+                650,
+            ])
         else:
             for spawn_point in self.map.get_spawn_points():
                 self.start_positions.append([spawn_point, config.images_until_respawn])
@@ -159,14 +186,16 @@ class   CarlaDataRecorder(CarlaClient):
         Resets the vehicle's position on the map. reset the agent creates 
         a new route of (number_of_lanepoints) waypoints to follow along. 
         """
-        _chosen                     = random.choice(self.start_positions)
+        _chosen                     = self.start_positions[self.start_positions_index]
         self.start_position         = _chosen[0]
         config.images_until_respawn = _chosen[1]
         self.reset_counter          = self.dataset_saver.index
+        self.start_positions_index  += 1
+        if self.start_positions_index >= len(self.start_positions):
+            self.start_positions_index = 0
 
-        print_info(f"{BOLD}[Reset-Vehicle-Position]{RESET} chosen spawnpoint is {self.start_position}, {self.start_position.location}")
+        print_info(f"{BOLD}[Reset-Vehicle-Position]{RESET} respon")
         waypoint = self.map.get_waypoint(self.start_position.location)
-        print_end()
 
         # Initialize lane deques with a fixed number of lanepoints
         for lane in self.lanes:
@@ -231,10 +260,6 @@ class   CarlaDataRecorder(CarlaClient):
         self.display.blit(self.font.render('% 5d FPS ' % self.clock.get_fps(), True, (255, 255, 255)), (8, 10))
         self.display.blit(self.font.render('Map: ' + config.CARLA_TOWN, True, (255, 255, 255)), (20, 50))
 
-        # # image save with lane points
-        if config.isSaving:
-            self.dataset_saver.save(self.display, x_lanes_list)
-
         pygame.display.flip()
 
     def on_gameloop(self):
@@ -251,7 +276,7 @@ class   CarlaDataRecorder(CarlaClient):
 
         # Move own vehicle to the next waypoint
         new_waypoint = self.vehicle_manager.move_agent(self.vehicle, self.waypoint_list)
-        print_info(f"{BOLD}[on_gameloop]{RESET} index: {self.dataset_saver.index} waypoint {new_waypoint}")
+        print_info(f"{BOLD}[on_gameloop]{RESET} index: {self.dataset_saver.index}")
         
         # Detect if junction is ahead
         self.vehicle_manager.detect_junction(self.waypoint_list)
@@ -273,8 +298,9 @@ class   CarlaDataRecorder(CarlaClient):
     def initialize(self):
         print_debug("CarlaGame initialize")
         self.blueprint_library = self.world.get_blueprint_library()
-        # self.start_position = random.choice(self.start_positions)[0]
         self.start_position = random.choice(self.map.get_spawn_points())
+        if self.start_positions_index >= len(self.start_positions):
+            self.start_positions_index = 0
         print_debug("CarlaGame initialize start_position")
         self.vehicle = self.world.spawn_actor(random.choice(self.blueprint_library.filter("vehicle.ford.mustang")), self.start_position)
         self.actor_list.append(self.vehicle)
@@ -283,7 +309,7 @@ class   CarlaDataRecorder(CarlaClient):
         self.bp_camera_rgb = self.blueprint_library.find("sensor.camera.rgb")
         self.bp_camera_rgb.set_attribute("image_size_x", f"{config.WINDOW_WIDTH}")
         self.bp_camera_rgb.set_attribute("image_size_y", f"{config.WINDOW_HEIGHT}")
-        # self.bp_camera_rgb.set_attribute("fov",          f"{config.FOV}")
+        self.bp_camera_rgb.set_attribute("fov",          f"{config.FOV}")
         print_debug("CarlaGame initialize camera_rgb")
         self.camera_rgb_spawnpoint = self.camera
         print_debug("CarlaGame initialize camera_rgb_spawnpoint")
