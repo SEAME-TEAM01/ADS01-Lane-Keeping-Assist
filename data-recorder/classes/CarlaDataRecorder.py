@@ -48,6 +48,10 @@ class   CarlaDataRecorder(CarlaClient):
         # client, client-timeout, world, and map as args and configs
         super().__init__(args)
         self.lanes          = lanes
+        settings = self.world.get_settings()
+        if config.noRendering is True:
+            settings.no_rendering_mode = True
+        self.world.apply_settings(settings)
         
         # pygame setting
         pygame.init()
@@ -77,15 +81,6 @@ class   CarlaDataRecorder(CarlaClient):
                                 config.WINDOW_HEIGHT,
                                 config.masks_directory)
 
-        # self.camera_transforms=[carla.Transform(carla.Location(x=0.0,  z=3.2), carla.Rotation(pitch=-19.5)), # camera 1
-        #                         carla.Transform(carla.Location(x=0.0,  z=2.8), carla.Rotation(pitch=-18.5)), # camera 2
-        #                         carla.Transform(carla.Location(x=0.3,  z=2.4), carla.Rotation(pitch=-15.0)), # camera 3
-        #                         carla.Transform(carla.Location(x=1.1,  z=2.0), carla.Rotation(pitch=-16.5)), # camera 4
-        #                         carla.Transform(carla.Location(x=1.0,  z=2.0), carla.Rotation(pitch=-18.5)), # camera 5
-        #                         carla.Transform(carla.Location(x=1.4,  z=1.2), carla.Rotation(pitch=-13.5)), # camera 6
-        #                         carla.Transform(carla.Location(x=1.8,  z=1.2), carla.Rotation(pitch=-14.5)), # camera 7
-        #                         carla.Transform(carla.Location(x=2.17, z=0.9), carla.Rotation(pitch=-14.5)), # camera 8
-        #                         carla.Transform(carla.Location(x=2.2,  z=0.7), carla.Rotation(pitch=-11.5))] # camera 9
         self.camera = carla.Transform(carla.Location(x=1.5,  z=2.0), carla.Rotation(pitch=-14.5))
 
         self.start_positions = []
@@ -121,6 +116,11 @@ class   CarlaDataRecorder(CarlaClient):
                 carla.Transform(carla.Location(x=-59.366730, y=-239.509918, z=3.687235),carla.Rotation(pitch=4.545931, yaw=-219.917603, roll=0.000000)),
                 180
             ])
+        elif config.CARLA_TOWN is "Town06_Opt":
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=386.040741, y=38.276459, z=-0.005049), carla.Rotation(pitch=-0.003511, yaw=-0.027893, roll=0.000000)), 
+                400
+            ])
         elif config.CARLA_TOWN is "Town10HD_Opt":
             self.start_positions.append([
                 carla.Transform(carla.Location(x=-114.218651, y=41.329021, z=0.002613), carla.Rotation(pitch=0.128858, yaw=90.870064, roll=-0.008606)),
@@ -133,6 +133,11 @@ class   CarlaDataRecorder(CarlaClient):
             self.start_positions.append([
                 carla.Transform(carla.Location(x=101.876251, y=58.557976, z=0.003270), carla.Rotation(pitch=0.000417, yaw=90.004517, roll=0.000000)),
                 310
+            ])
+        elif config.CARLA_TOWN is "Town11":
+            self.start_positions.append([
+                carla.Transform(carla.Location(x=-588.375122, y=2308.134521, z=92.191521), carla.Rotation(pitch=-1.072818, yaw=-39.323952, roll=0.006801)),
+                400
             ])
         else:
             for spawn_point in self.map.get_spawn_points():
