@@ -1,0 +1,4 @@
+[submodule "piracer/ADS01_Autonomous-Lane-Detection"]
+	path = piracer
+	url = https://github.com/KKWANH/ADS01_Autonomous-Lane-Detection
+    branch = dev-main
