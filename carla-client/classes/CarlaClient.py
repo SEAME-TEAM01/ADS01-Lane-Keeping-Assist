@@ -1,23 +1,20 @@
 # ------------------------------------------------------
 # Import library
-import  os
 import  sys
-import  glob
+import  configs as config
+
 from    abc \
         import  ABC, abstractmethod
-
-import  configs as config
+from    utils.prints \
+        import  *
 
 # ------------------------------------------------------
 # Find carla library
 try:
-    sys.path.append(glob.glob("../carla/dist/carla-*%d.%d-%s.egg" % (
-        sys.version_info.major,
-        sys.version_info.minor,
-        "win-amd64" if os.name == "nt" else "linux-x86_64"))[0])
+    sys.path.append(config.CARLA_DIR)
+    import  carla
 except  IndexError:
-    pass
-import  carla
+    print_failure("Failed to import carla egg file.")
 
 # ------------------------------------------------------
 # CarlaClient Class

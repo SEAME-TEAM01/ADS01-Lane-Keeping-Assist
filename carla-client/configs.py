@@ -1,5 +1,17 @@
+import  os
+import  sys
+import  glob
+
 # ------------------------------------------------------
 # - Carla Variables
+CARLA_FOLDER_DIR    = "./carla-api/"
+CARLA_EGG_FILE      = "dist/carla-*%d.%d-%s.egg"
+CARLA_DIR           = CARLA_FOLDER_DIR + CARLA_EGG_FILE
+CARLA_DIR           = glob.glob("../carla/dist/carla-*%d.%d-%s.egg" % (
+                            sys.version_info.major,
+                            sys.version_info.minor,
+                        "win-amd64" if os.name == "nt" else "linux-x86_64"))[0]
+
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 FPS = 20
@@ -13,19 +25,11 @@ NEIGHTBOR_VEHICLES_MODE = False
 
 debugMode = False
 noRendering = True
-# Save images and labels on disk
 isSaving = True
-# Keep own vehicle either in center of road or oscillate between lanemarkings
 isCenter = True
-# Calculate and draw 3D Lanes on Juction
 junctionMode = False
-# 
 draw3DLanes = True
 
-# Number of images stored in a .npy file
-number_of_images = 100
-# Total number of .npy files
-total_number_of_imagesets = 100
 # Vertical startposition of the lanepoints in the 2D-image
 row_anchor_start = 160
 # Number of images after agent is respawned
@@ -34,8 +38,6 @@ images_until_respawn = 350
 meters_per_frame = 1.0
 # Total length of a lane_list
 number_of_lanepoints = 80
-# Max size of images per folder
-max_files_per_classification = 2000
 
 h_samples = []
 for y in range(row_anchor_start, WINDOW_HEIGHT, 10):
