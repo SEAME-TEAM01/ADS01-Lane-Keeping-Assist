@@ -4,13 +4,15 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 FPS = 20
 FOV = 90.0
-CARLA_TOWN = "Town10HD_Opt"
+CARLA_TOWN = "Town15"
 
 WORKER_THREADS = 1
-CLIENT_TIMEOUT = 40.0
+CLIENT_TIMEOUT = 50.0
 LANE_DETECTION_TIMEOUT = 30.0
 NEIGHTBOR_VEHICLES_MODE = False
 
+debugMode = False
+noRendering = True
 # Save images and labels on disk
 isSaving = True
 # Keep own vehicle either in center of road or oscillate between lanemarkings
@@ -43,7 +45,7 @@ for y in range(row_anchor_start, WINDOW_HEIGHT, 10):
 
 # ------------------------------------------------------
 # - Saver Variables
-dataset_directory = '../../ADS01-Lane-Keeping-Assist-Dataset/'
+dataset_directory = '../../dataset/datasetv2/testset/'
 image_directory = dataset_directory + 'images/'
 label_directory = dataset_directory + 'labels/'
 masks_directory = dataset_directory + 'masks/'

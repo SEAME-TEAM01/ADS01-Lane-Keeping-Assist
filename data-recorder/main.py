@@ -25,12 +25,15 @@ except  ImportError as exception:
     print_term_size_line()
     print_end()
 
+def log_setting(args):
+    log_level = logging.DEBUG if args.debug else logging.INFO
+    logging.basicConfig(format="%(levelname)s: %(message)s", level=log_level)
+
 # ------------------------------------------------------
 # Main function
 def main():
     args = load_args()
-    log_level = logging.DEBUG if args.debug else logging.INFO
-    logging.basicConfig(format="%(levelname)s: %(message)s", level=log_level)
+    log_setting(args)
 
     lanes =[deque(maxlen=config.number_of_lanepoints), 
             deque(maxlen=config.number_of_lanepoints), 

@@ -1,6 +1,7 @@
 # ------------------------------------------------------
 # Import library
 import  os
+import  configs as config
 from    utils.colors \
         import  *
 
@@ -62,6 +63,8 @@ def print_success(text, is_first_line=True):
 
 # ------------------------------------------------------
 def print_debug(text, is_first_line=True):
+    if config.debugMode is False:
+        return
     option = "[DEBUG]  "
     color = MAGENTA
     if is_first_line is False:
