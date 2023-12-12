@@ -14,7 +14,7 @@ def create_mask(pred_mask):
   pred_mask[..., -1] = tf.where(mask, 1, 0)
   
   # only if you drive on highway this is 
-  pred_mask[0, :150, :, :] = 0
+  pred_mask[0, :120, :, :] = 0
   return pred_mask[0]
 
 def extract_current_lanes(df_lanes=None, width=512):
@@ -90,7 +90,7 @@ def draw_lanes(lanes=None, left_lane=None, right_lane=None):
   return background
 
 
-def display_heading_line(image, left_lane, right_lane, steering_angle):
+def display_heading_line(image, left_lane, right_lane, steering_angle, frame):
     """
     Draws heading line on the image based on left and right lane coordinates and steering angle.
 
@@ -120,9 +120,9 @@ def display_heading_line(image, left_lane, right_lane, steering_angle):
     end_y = int(center_y - line_length * np.sin(angle_radians))
 
     image_with_line = cv2.line(image_with_line, (center_x, center_y), (end_x, end_y), (0, 0, 255), 3)
-
-    plt.imshow(image_with_line)
-    plt.show()
+    cv2.imwrite(f'_pred_out/{frame}_{steering_angle}.jpg', image_with_line)
+    # plt.imshow(image_with_line)
+    # plt.show()
 
 def display_mask(image, mask):
   """
@@ -139,22 +139,24 @@ def display_mask(image, mask):
   plt.show()
   
 
-def predict_steering_angle(image, model=None):
+def predict_steering_angle(image, model=None, frame=1):
   """
   Predict Steering Angle from Live Image
   """
-  img = tf.expand_dims(image, 0)
-  pred_mask = model.predict(img)
-  mask = create_mask(pred_mask)  
-  # display_mask(image, mask)
-  lanes_coords = mask_to_coordinates(mask)
-  df_lanes = HDBSCAN_cluster(lanes_coords)
-  # visualize_cluster(df_lanes)
-  left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes)
-  # draw_lanes(left_lane=left_lane, right_lane=right_lane)
-  steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
-  print(steering_angle)
-  # display_heading_line(image, left_lane, right_lane, steering_angle)
+  try:
+    img = tf.expand_dims(image, 0)
+    pred_mask = model.predict(img)
+    mask = create_mask(pred_mask)  
+    # display_mask(image, mask)
+    lanes_coords = mask_to_coordinates(mask)
+    df_lanes = HDBSCAN_cluster(lanes_coords)
+    # visualize_cluster(df_lanes)
+    left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes)
+    # draw_lanes(left_lane=left_lane, right_lane=right_lane)
+    steering_angle = calculate_steer_angle(left_lane, right_lane, width=512, height=256)
+    display_heading_line(image, left_lane, right_lane, steering_angle, frame)
+  except Exception as e:
+    steering_angle = -1
   return steering_angle
 
 # def main():

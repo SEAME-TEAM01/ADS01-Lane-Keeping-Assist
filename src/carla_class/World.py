@@ -11,7 +11,6 @@ from queue import Queue
 
 class World(object):
     def __init__(self, carla_world, hud, actor_filter):
-        print(11)
         self.world = carla_world
         self.map = self.world.get_map()
         self.control = carla.VehicleControl()
@@ -25,22 +24,22 @@ class World(object):
         self._weather_index = 0
         self._actor_filter = actor_filter
         self.start_positions = [
-            carla.Transform(carla.Location(x=437.742188, y=665.656677, z=123.274864), carla.Rotation(pitch=1.838311, yaw=82.561096, roll=0.017176)),
+            # carla.Transform(carla.Location(x=437.742188, y=665.656677, z=123.274864), carla.Rotation(pitch=1.838311, yaw=82.561096, roll=0.017176)),
+            # carla.Transform(carla.Location(x=11.814589, y=-151.327362, z=125.517899), carla.Rotation(pitch=0.236113, yaw=110.439682, roll=-0.002930)),
+            carla.Transform(carla.Location(x=-24.028019, y=-246.138351, z=0.860913),carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)),
         ]
         self.world.on_tick(hud.on_world_tick)
-        self.img_queue = Queue(maxsize=1000)
-        print(22)
+        self.img_queue = Queue(maxsize=20)
         self.restart()
         cam_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
         cam_bp.set_attribute("image_size_x",str(512))
         cam_bp.set_attribute("image_size_y",str(256))
-        cam_bp.set_attribute("fov",str(90))
-        cam_location = carla.Location(4,0,1.0)
+        cam_bp.set_attribute("fov",str(110))
+        cam_location = carla.Location(4,0,1.5)
         cam_rotation = carla.Rotation(0,0,0)
         cam_transform = carla.Transform(cam_location,cam_rotation)
         self.sensor = self.world.spawn_actor(cam_bp,cam_transform,attach_to=self.player, attachment_type=carla.AttachmentType.Rigid)
         self.sensor.listen(lambda image: self.process_image(image))
-        print(33)
 
     def restart(self):
         # Keep same camera config if the camera manager exists.
@@ -60,7 +59,6 @@ class World(object):
             spawn_point.rotation.pitch = 0.0
             self.destroy()
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
-        print(55)
         while self.player is None: 
             if not self.map.get_spawn_points():
                 print('There are no spawn points available in your map/town.')
@@ -69,12 +67,9 @@ class World(object):
             # spawn_points = self.map.get_spawn_points()
             # spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
             spawn_point = random.choice(self.start_positions) 
-            print(77)
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
-            print(self.player)
             self.show_vehicle_telemetry = False
             self.modify_vehicle_physics(self.player)
-        print(66)
         # Set up the sensors.
         self.collision_sensor = CollisionSensor(self.player, self.hud)
         self.lane_invasion_sensor = LaneInvasionSensor(self.player, self.hud)
