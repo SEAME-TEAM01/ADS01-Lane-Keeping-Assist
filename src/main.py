@@ -18,19 +18,6 @@ build = tf.sysconfig.get_build_info()
 build['cuda_version'] = '11.3'
 build['cudnn_version'] = '8.6'
 
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# if gpus:
-#   try:
-#     # Currently, memory growth needs to be the same across GPUs
-#     for gpu in gpus:
-#       tf.config.experimental.set_memory_growth(gpu, True)
-#     logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-#     print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-#   except RuntimeError as e:
-#     # Memory growth must be set before GPUs have been initialized
-#     print(e)
-
-
 HOST = 'localhost'
 PORT = 2000
 
@@ -60,25 +47,29 @@ def main():
   world = None
 
   try:
+    print(1)
     client = carla.Client(HOST, PORT)
     client.set_timeout(2.0)
     settings = client.get_world().get_settings()
     settings.fixed_delta_seconds = 0.05  # (1/20 = 0.05sec)
 
+    print(2)
+    
     display = pygame.display.set_mode((800, 600), pygame.HWSURFACE | pygame.DOUBLEBUF)
     hud = HUD(800, 600)
-    world = World(client.get_world(), hud, "vehicle.*")
+    world = World(client.get_world(), hud, "vehicle.ford.mustang")
     controler = Control(world)
-
+    print(3)
     clock = pygame.time.Clock()
     while True:
-        pygame.display.flip()
         clock.tick_busy_loop(60)
         world.tick(clock)
         world.render(display)
         if world.img_queue.empty() == False:
-            image = world.img_queue.get()
-            controler.predict(image)
+            with tf.device('/GPU:0'):
+                image = world.img_queue.get()
+                controler.predict(image)
+        pygame.display.flip()
 
   finally:
     if world is not None:

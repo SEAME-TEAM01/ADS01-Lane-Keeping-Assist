@@ -2,6 +2,7 @@ import re
 import os
 import random
 import carla
+import sys
 import pygame
 import numpy as np
 import cv2
@@ -10,7 +11,9 @@ from queue import Queue
 
 class World(object):
     def __init__(self, carla_world, hud, actor_filter):
+        print(11)
         self.world = carla_world
+        self.map = self.world.get_map()
         self.control = carla.VehicleControl()
         self.hud = hud
         self.player = None
@@ -22,14 +25,11 @@ class World(object):
         self._weather_index = 0
         self._actor_filter = actor_filter
         self.start_positions = [
-            carla.Transform(carla.Location(x=-24.028019, y=-246.138351, z=0.860913),carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)),
-            carla.Transform(carla.Location(x=82.813736, y=47.457050, z=0.027074),carla.Rotation(pitch=-0.011598, yaw=-70.911583, roll=-0.000183)),
-            carla.Transform(carla.Location(x=61.971699, y=-85.821495, z=6.278840),carla.Rotation(pitch=4.703701, yaw=-80.328285, roll=0.000000)),
-            carla.Transform(carla.Location(x=-59.366730, y=-239.509918, z=3.687235),carla.Rotation(pitch=4.545931, yaw=-219.917603, roll=0.000000))    
+            carla.Transform(carla.Location(x=437.742188, y=665.656677, z=123.274864), carla.Rotation(pitch=1.838311, yaw=82.561096, roll=0.017176)),
         ]
         self.world.on_tick(hud.on_world_tick)
-        self.img_queue = Queue(maxsize=100000)
-        
+        self.img_queue = Queue(maxsize=1000)
+        print(22)
         self.restart()
         cam_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
         cam_bp.set_attribute("image_size_x",str(512))
@@ -40,7 +40,7 @@ class World(object):
         cam_transform = carla.Transform(cam_location,cam_rotation)
         self.sensor = self.world.spawn_actor(cam_bp,cam_transform,attach_to=self.player, attachment_type=carla.AttachmentType.Rigid)
         self.sensor.listen(lambda image: self.process_image(image))
-        
+        print(33)
 
     def restart(self):
         # Keep same camera config if the camera manager exists.
@@ -60,9 +60,21 @@ class World(object):
             spawn_point.rotation.pitch = 0.0
             self.destroy()
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
-        while self.player is None:
-            spawn_point = random.choice(self.start_positions)
+        print(55)
+        while self.player is None: 
+            if not self.map.get_spawn_points():
+                print('There are no spawn points available in your map/town.')
+                print('Please add some Vehicle Spawn sta to your UE4 scene.')
+                sys.exit(1)
+            # spawn_points = self.map.get_spawn_points()
+            # spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            spawn_point = random.choice(self.start_positions) 
+            print(77)
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+            print(self.player)
+            self.show_vehicle_telemetry = False
+            self.modify_vehicle_physics(self.player)
+        print(66)
         # Set up the sensors.
         self.collision_sensor = CollisionSensor(self.player, self.hud)
         self.lane_invasion_sensor = LaneInvasionSensor(self.player, self.hud)
@@ -108,6 +120,15 @@ class World(object):
         img = tf.image.convert_image_dtype(img, tf.float32)
         img = tf.image.resize(img, [256, 512], method='nearest')
         self.img_queue.put(img)
+
+    def modify_vehicle_physics(self, actor):
+        #If actor is not a vehicle, we cannot use the physics control
+        try:
+            physics_control = actor.get_physics_control()
+            physics_control.use_sweep_wheel_collision = True
+            actor.apply_physics_control(physics_control)
+        except Exception:
+            pass
 
 
 def find_weather_presets():
