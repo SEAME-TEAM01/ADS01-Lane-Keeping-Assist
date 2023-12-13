@@ -42,16 +42,13 @@ class Control(object):
 
     def predict(self,image):
         steer_angle = predict_steering_angle(image=image, model=self.model, frame=self.frame)
-        self.frame += 1
-        if steer_angle > 0:
+        if steer_angle != -2:
             self._prev_steering_angle = steer_angle
         else:
             steer_angle = self._prev_steering_angle
-        normalized_angle = steer_angle - 90
-
-        normalized_angle = normalized_angle / 90
-        print(normalized_angle, steer_angle)
-        self.control(steering=normalized_angle, throttle=0.3)
+            
+        print(steer_angle)
+        self.control(steering=steer_angle, throttle=0.3)
 
 def main():
   pygame.init()

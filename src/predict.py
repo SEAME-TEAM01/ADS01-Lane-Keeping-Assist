@@ -14,7 +14,7 @@ def create_mask(pred_mask):
   pred_mask[..., -1] = tf.where(mask, 1, 0)
 
   # only if you drive on highway this is
-  pred_mask[0, :120, :, :] = 0
+  pred_mask[0, :150, :, :] = 0
   return pred_mask[0]
 
 def extract_current_lanes(df_lanes=None, width=512):
@@ -78,19 +78,21 @@ def pure_pursuit(reference_path=None, width=512, height=256):
     return None
 
   vehicle_position = (width // 2, height)
-  lookahead_distance = 100 # should be dynamic based on speed
+  lookahead_distance = 100
 
   lookahead_point = None
+  
   for point in reversed(reference_path):
-    distance = vehicle_position[1] - point[1] # should be Euclidean Algorithm but this doesn't work sometimes for some reason
+    distance = vehicle_position[1] - point[1]
     if  distance >= lookahead_distance:
       lookahead_point = point
       break
-
+  
   if lookahead_point is None:
     return None
 
   angle_to_lookahead_radian = np.arctan2(vehicle_position[1] - lookahead_point[1], lookahead_point[0] - vehicle_position[0])
+  
   return angle_to_lookahead_radian
 
 
@@ -155,7 +157,6 @@ def display_heading_line(image, left_lane, right_lane, steering_angle, frame):
     end_y = int(center_y - line_length * np.sin(angle_radians))
 
     image_with_line = cv2.line(image_with_line, (center_x, center_y), (end_x, end_y), (0, 0, 255), 3)
-    cv2.imwrite(f'_pred_out/{frame}_{steering_angle}.jpg', image_with_line)
     # plt.imshow(image_with_line)
     # plt.show()
 
@@ -229,12 +230,16 @@ def predict_steering_angle(image, model=None, frame=1):
     left_lane, right_lane = extract_current_lanes(df_lanes=df_lanes)
     # draw_lanes(left_lane=left_lane, right_lane=right_lane)
     path_points = calculate_ideal_path(left_lane=left_lane, right_lane=right_lane)
-    steering_angle = pure_pursuit(left_lane, right_lane, width=512, height=256)
+    steering_angle = pure_pursuit(reference_path=path_points, width=512, height=256)
     image = plot_lines(image, left_lane, right_lane, path_points)
-    # plot_heading_line(image, steering_angle)
+    plot_heading_line(image, steering_angle)
+    steering_angle_radian = max(0, min(steering_angle, np.pi))
+
+    normalized_angle = (2 * steering_angle_radian / np.pi) - 1
+    print(steering_angle, normalized_angle)
   except Exception as e:
-    steering_angle = -1
-  return steering_angle
+    normalized_angle = -2
+  return normalized_angle
 
 # def main():
 #   Lane = LaneDataset(train=True)
