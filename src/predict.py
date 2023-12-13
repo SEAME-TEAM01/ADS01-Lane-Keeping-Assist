@@ -14,7 +14,6 @@ def create_mask(pred_mask):
   pred_mask[..., -1] = tf.where(mask, 1, 0)
 
   # only if you drive on highway this is
-  pred_mask[0, :150, :, :] = 0
   return pred_mask[0]
 
 def extract_current_lanes(df_lanes=None, width=512):
@@ -174,14 +173,13 @@ def display_mask(image, mask):
     plt.axis('off')
   plt.show()
 
-def plot_heading_line(image, steering_angle, width=512, height=256):
+def plot_heading_line(image, steering_angle, width=512, height=256, frame=1):
   center_x, center_y = width // 2, height
   line_length = height // 3
   end_x = int(center_x + line_length * np.cos(steering_angle))
   end_y = int(center_y - line_length * np.sin(steering_angle))
   image = cv2.line(image, (center_x, center_y), (end_x, end_y), (0, 255, 0), 2)
-  plt.imshow(image)
-  plt.show()
+  cv2.imwrite(f'pred_out/{frame}.png', image)
 
 
 def plot_lines(image, left_lane, right_lane, path_points, plot=False):
@@ -197,22 +195,19 @@ def plot_lines(image, left_lane, right_lane, path_points, plot=False):
     Returns:
     - Image tensor with the heading line drawn.
     """
-    image_with_line = np.copy(image)
-
+    image = image.numpy()
+    if image.dtype != np.uint8:
+      image = (image * 255).astype(np.uint8)
     for x, y in zip(left_lane['x'], left_lane['y']):
-      image_with_line[y, x] = 255
+        image = cv2.circle(image, (x, y), radius=1, color=(255, 0, 0), thickness=2)
     for x, y in zip(right_lane['x'], right_lane['y']):
-      image_with_line[y, x] = 255
+        image = cv2.circle(image, (x, y), radius=1, color=(0, 0, 255), thickness=2)
 
-    x_coords, y_coords = zip(*path_points)
-    x_coords_selected = x_coords[::10]
-    y_coords_selected = y_coords[::10]
-
-    plt.plot(x_coords_selected, y_coords_selected, 'o', markersize=5, linewidth=2, color='green')
-    plt.imshow(image_with_line)
+    for x, y in path_points[::10]:
+        image = cv2.circle(image, (x, y), radius=5, color=(0, 255, 0), thickness=2)
     if (plot):
       plt.show()
-    return image_with_line
+    return  image
 
 
 def predict_steering_angle(image, model=None, frame=1):
@@ -231,13 +226,15 @@ def predict_steering_angle(image, model=None, frame=1):
     # draw_lanes(left_lane=left_lane, right_lane=right_lane)
     path_points = calculate_ideal_path(left_lane=left_lane, right_lane=right_lane)
     steering_angle = pure_pursuit(reference_path=path_points, width=512, height=256)
-    image = plot_lines(image, left_lane, right_lane, path_points)
-    plot_heading_line(image, steering_angle)
-    steering_angle_radian = max(0, min(steering_angle, np.pi))
-
-    normalized_angle = (2 * steering_angle_radian / np.pi) - 1
-    print(steering_angle, normalized_angle)
+    # image = plot_lines(image, left_lane, right_lane, path_points)
+    # plot_heading_line(image, steering_angle, frame=frame)
+    
+    steering_angle = np.pi - steering_angle
+    normalized_angle = (2 * steering_angle / np.pi) - 1
+    print('steering_radian:', steering_angle)
+    print('steering:', normalized_angle)
   except Exception as e:
+    print(e)
     normalized_angle = -2
   return normalized_angle
 

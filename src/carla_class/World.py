@@ -24,9 +24,7 @@ class World(object):
         self._weather_index = 0
         self._actor_filter = actor_filter
         self.start_positions = [
-            # carla.Transform(carla.Location(x=437.742188, y=665.656677, z=123.274864), carla.Rotation(pitch=1.838311, yaw=82.561096, roll=0.017176)),
-            # carla.Transform(carla.Location(x=11.814589, y=-151.327362, z=125.517899), carla.Rotation(pitch=0.236113, yaw=110.439682, roll=-0.002930)),
-            carla.Transform(carla.Location(x=-24.028019, y=-246.138351, z=0.860913),carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)),
+            carla.Transform(carla.Location(x=-29.967329, y=406.546173, z=-11.734661), carla.Rotation(pitch=0.000000, yaw=-2.000000, roll=-0.000000))
         ]
         self.world.on_tick(hud.on_world_tick)
         self.img_queue = Queue(maxsize=20)
@@ -35,7 +33,7 @@ class World(object):
         cam_bp.set_attribute("image_size_x",str(512))
         cam_bp.set_attribute("image_size_y",str(256))
         cam_bp.set_attribute("fov",str(120))
-        cam_location = carla.Location(4,0,1.0)
+        cam_location = carla.Location(4,0,1.5)
         cam_rotation = carla.Rotation(0,0,0)
         cam_transform = carla.Transform(cam_location,cam_rotation)
         self.sensor = self.world.spawn_actor(cam_bp,cam_transform,attach_to=self.player, attachment_type=carla.AttachmentType.Rigid)
@@ -65,9 +63,12 @@ class World(object):
                 print('Please add some Vehicle Spawn sta to your UE4 scene.')
                 sys.exit(1)
             # spawn_points = self.map.get_spawn_points()
-            # spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
-            spawn_point = random.choice(self.start_positions) 
-            self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+            # spawn_point_random = random.choice(spawn_points) if spawn_points else carla.Transform()
+            spawn_point = random.choice(self.start_positions)
+            # print('my_spawn: ', spawn_point)
+            # print('random_spawn: ', spawn_point_random)
+            self.player = self.world.spawn_actor(blueprint, spawn_point)
+            # print('player:', self.player)
             self.show_vehicle_telemetry = False
             self.modify_vehicle_physics(self.player)
         # Set up the sensors.
@@ -114,6 +115,8 @@ class World(object):
         img = tf.image.decode_jpeg(img, channels=3) 
         img = tf.image.convert_image_dtype(img, tf.float32)
         img = tf.image.resize(img, [256, 512], method='nearest')
+        if (self.img_queue.full() == True):
+            self.img_queue.get()
         self.img_queue.put(img)
 
     def modify_vehicle_physics(self, actor):
