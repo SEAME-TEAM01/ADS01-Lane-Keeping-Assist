@@ -2,6 +2,7 @@ import re
 import os
 import random
 import carla
+import sys
 import pygame
 import numpy as np
 import cv2
@@ -11,6 +12,7 @@ from queue import Queue
 class World(object):
     def __init__(self, carla_world, hud, actor_filter):
         self.world = carla_world
+        self.map = self.world.get_map()
         self.control = carla.VehicleControl()
         self.hud = hud
         self.player = None
@@ -22,25 +24,20 @@ class World(object):
         self._weather_index = 0
         self._actor_filter = actor_filter
         self.start_positions = [
-            carla.Transform(carla.Location(x=-24.028019, y=-246.138351, z=0.860913),carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)),
-            carla.Transform(carla.Location(x=82.813736, y=47.457050, z=0.027074),carla.Rotation(pitch=-0.011598, yaw=-70.911583, roll=-0.000183)),
-            carla.Transform(carla.Location(x=61.971699, y=-85.821495, z=6.278840),carla.Rotation(pitch=4.703701, yaw=-80.328285, roll=0.000000)),
-            carla.Transform(carla.Location(x=-59.366730, y=-239.509918, z=3.687235),carla.Rotation(pitch=4.545931, yaw=-219.917603, roll=0.000000))    
+            carla.Transform(carla.Location(x=-29.967329, y=406.546173, z=-11.734661), carla.Rotation(pitch=0.000000, yaw=-2.000000, roll=-0.000000))
         ]
         self.world.on_tick(hud.on_world_tick)
-        self.img_queue = Queue(maxsize=100000)
-        
+        self.img_queue = Queue(maxsize=20)
         self.restart()
         cam_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
         cam_bp.set_attribute("image_size_x",str(512))
         cam_bp.set_attribute("image_size_y",str(256))
-        cam_bp.set_attribute("fov",str(90))
-        cam_location = carla.Location(4,0,1.0)
+        cam_bp.set_attribute("fov",str(120))
+        cam_location = carla.Location(4,0,1.5)
         cam_rotation = carla.Rotation(0,0,0)
         cam_transform = carla.Transform(cam_location,cam_rotation)
         self.sensor = self.world.spawn_actor(cam_bp,cam_transform,attach_to=self.player, attachment_type=carla.AttachmentType.Rigid)
         self.sensor.listen(lambda image: self.process_image(image))
-        
 
     def restart(self):
         # Keep same camera config if the camera manager exists.
@@ -60,9 +57,20 @@ class World(object):
             spawn_point.rotation.pitch = 0.0
             self.destroy()
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
-        while self.player is None:
+        while self.player is None: 
+            if not self.map.get_spawn_points():
+                print('There are no spawn points available in your map/town.')
+                print('Please add some Vehicle Spawn sta to your UE4 scene.')
+                sys.exit(1)
+            # spawn_points = self.map.get_spawn_points()
+            # spawn_point_random = random.choice(spawn_points) if spawn_points else carla.Transform()
             spawn_point = random.choice(self.start_positions)
-            self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+            # print('my_spawn: ', spawn_point)
+            # print('random_spawn: ', spawn_point_random)
+            self.player = self.world.spawn_actor(blueprint, spawn_point)
+            # print('player:', self.player)
+            self.show_vehicle_telemetry = False
+            self.modify_vehicle_physics(self.player)
         # Set up the sensors.
         self.collision_sensor = CollisionSensor(self.player, self.hud)
         self.lane_invasion_sensor = LaneInvasionSensor(self.player, self.hud)
@@ -107,7 +115,18 @@ class World(object):
         img = tf.image.decode_jpeg(img, channels=3) 
         img = tf.image.convert_image_dtype(img, tf.float32)
         img = tf.image.resize(img, [256, 512], method='nearest')
+        if (self.img_queue.full() == True):
+            self.img_queue.get()
         self.img_queue.put(img)
+
+    def modify_vehicle_physics(self, actor):
+        #If actor is not a vehicle, we cannot use the physics control
+        try:
+            physics_control = actor.get_physics_control()
+            physics_control.use_sweep_wheel_collision = True
+            actor.apply_physics_control(physics_control)
+        except Exception:
+            pass
 
 
 def find_weather_presets():
