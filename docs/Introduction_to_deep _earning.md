@@ -72,7 +72,9 @@ To find important elements for classification, convolution applies the same oper
 
 Convolution (*c*) is performed as follows: weights (*w*) "slide" along the sequence (*s*), and a scalar product is calculated at each position.
 
-<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/_2.mp4">
+<video width="320" height="240" controls>
+  <source src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/_2.mp4" type="video/mp4">
+</video>
 
 Now let's take a look at how two-dimensional convolution works.
 
