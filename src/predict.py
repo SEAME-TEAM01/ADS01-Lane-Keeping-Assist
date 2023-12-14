@@ -61,7 +61,7 @@ def calculate_ideal_path(left_lane=None, right_lane=None, height=256):
 
   ideal_path = (left_fit + right_fit) / 2
 
-  lane_y_min = left_lane['y'].min()
+  lane_y_min = min(left_lane['y'].min(), right_lane['y'].min())
   y_vals = np.arange(lane_y_min, height, 1)
   ideal_path_x = (ideal_path[0] * y_vals ** 2 + ideal_path[1] * y_vals + ideal_path[2]).astype(np.int32)
 
@@ -160,7 +160,7 @@ def display_heading_line(image, left_lane, right_lane, steering_angle, frame):
     # plt.imshow(image_with_line)
     # plt.show()
 
-def display_mask(image, mask):
+def display_mask(image, mask, frame):
   """
   Displays the image and the mask
   """
@@ -172,7 +172,7 @@ def display_mask(image, mask):
     plt.title(title[i])
     plt.imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
     plt.axis('off')
-  plt.show()
+  plt.savefig(f'mask/{frame}.png')  # Save the figure to a file
 
 def plot_heading_line(image, steering_angle, width=512, height=256, frame=1):
   center_x, center_y = width // 2, height
@@ -219,7 +219,7 @@ def predict_steering_angle(image, model=None, frame=1):
     img = tf.expand_dims(image, 0)
     pred_mask = model.predict(img)
     mask = create_mask(pred_mask)
-    # display_mask(image, mask)
+    # display_mask(image, mask, frame)
     lanes_coords = mask_to_coordinates(mask)
     df_lanes = HDBSCAN_cluster(lanes_coords)
     # visualize_cluster(df_lanes)

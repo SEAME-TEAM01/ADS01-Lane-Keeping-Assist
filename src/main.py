@@ -49,6 +49,7 @@ class Control(object):
     
     def predict(self,image):
         steer_angle = predict_steering_angle(image=image, model=self.model, frame=self.frame)
+        # print('frame:', self.frame)
         self.frame += 1
         if steer_angle != -2:
             steer_angle = self.stabilize_steering_angle(self._prev_steering_angle, steer_angle)
@@ -70,14 +71,14 @@ def run_world(steering_queue, img_queue):
         client.get_world().apply_settings(settings)
         display = pygame.display.set_mode((800, 600), pygame.HWSURFACE | pygame.DOUBLEBUF)
         hud = HUD(800, 600)
-        world = World(client.get_world(), hud, 'vehicle.ford.mustang', img_queue)
+        world = World(client.get_world(), hud, 'vehicle.mercedes.coupe_2020', img_queue)
         clock = pygame.time.Clock()
         control = carla.VehicleControl()
         while True:
             if steering_queue.empty() == False:
                 steering_angle = steering_queue.get()
                 control.steer = steering_angle
-                control.throttle = 0.35
+                control.throttle = 0.4
                 control.brake = 0.0
                 world.player.apply_control(control)
             clock.tick_busy_loop(30)
