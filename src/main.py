@@ -2,6 +2,7 @@ import os
 import shutil
 import pygame
 import carla
+import numpy as np
 from carla_class.HUD import HUD
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -35,13 +36,27 @@ class Control(object):
         img = tf.image.resize(img, [256, 512], method='nearest')
         return img
     
+    def stabilize_steering_angle(self, curr_steering_angle, new_steering_angle, max_angle_deviation_two_lines=0.08):
+        max_angle_deviation = max_angle_deviation_two_lines
+
+        angle_deviation = new_steering_angle - curr_steering_angle
+        if abs(angle_deviation) > max_angle_deviation:
+            stabilized_steering_angle = curr_steering_angle + max_angle_deviation * np.sign(angle_deviation)
+        else:
+            stabilized_steering_angle = new_steering_angle
+
+        return stabilized_steering_angle
+    
     def predict(self,image):
         steer_angle = predict_steering_angle(image=image, model=self.model, frame=self.frame)
         self.frame += 1
         if steer_angle != -2:
+            steer_angle = self.stabilize_steering_angle(self._prev_steering_angle, steer_angle)
             self._prev_steering_angle = steer_angle
         else:
             steer_angle = self._prev_steering_angle
+            
+
         self.steering_queue.put(steer_angle)            
         
 def run_world(steering_queue, img_queue):
@@ -62,10 +77,10 @@ def run_world(steering_queue, img_queue):
             if steering_queue.empty() == False:
                 steering_angle = steering_queue.get()
                 control.steer = steering_angle
-                control.throttle = 0.25
+                control.throttle = 0.35
                 control.brake = 0.0
                 world.player.apply_control(control)
-            clock.tick_busy_loop(20)
+            clock.tick_busy_loop(30)
             world.tick(clock)
             world.render(display)
             pygame.display.flip()
@@ -95,8 +110,8 @@ def run_control(steering_queue, img_queue):
 
 def main():  
   try:
-    steering_queue = Queue(maxsize=20)
-    img_queue = Queue(maxsize=20)
+    steering_queue = Queue(maxsize=8)
+    img_queue = Queue(maxsize=8)
     world_process = Process(target=run_world, args=(steering_queue, img_queue))
     control_process = Process(target=run_control, args=(steering_queue, img_queue))
     
