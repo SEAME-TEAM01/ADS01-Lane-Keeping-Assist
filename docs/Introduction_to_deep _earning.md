@@ -12,7 +12,7 @@ However, it's not enough to simply see objects - it's also necessary to understa
 
 The color in RGB is defined by a triplet of numbers, each of which takes a value from 0 to 255, for example, [127, 53, 65].
 
-![Frame_255_2_1659435593.png](ADS%20for%20docs%202e45af324dd34bfe9413a907c7240d3d/Frame_255_2_1659435593.png)
+[![Frame_255_2_1659435593.png](ADS%20for%20docs%202e45af324dd34bfe9413a907c7240d3d/Frame_255_2_1659435593.png)](https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/rgb.png)
 
 The main parameters of an image are its width and height in pixels, as well as the number of channels. The size of an uncompressed image in bytes is the product of its height, width, and number of channels.
 
