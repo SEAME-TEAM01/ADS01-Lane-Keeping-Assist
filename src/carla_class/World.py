@@ -24,7 +24,14 @@ class World(object):
         self._weather_index = 0
         self._actor_filter = actor_filter
         self.start_positions = [
-            carla.Transform(carla.Location(x=-29.967329, y=406.546173, z=-11.734661), carla.Rotation(pitch=0.000000, yaw=-2.000000, roll=-0.000000))
+            # Town10_Opt
+            # carla.Transform(carla.Location(x=-114.218651, y=41.329021, z=2.002613), carla.Rotation(pitch=0.128858, yaw=90.870064, roll=-0.008606)),
+            # Town07_Opt
+            # carla.Transform(carla.Location(x=-24.028019, y=-246.138351, z=2.860913),carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)),
+            # Town03_Opt
+            carla.Transform(carla.Location(x=-85.302979, y=156.585388, z=2.003271),carla.Rotation(pitch=0.000376, yaw=87.022415, roll=0.000014)),
+            # Town01_Opt
+            # carla.Transform(carla.Location(x=-29.967329, y=406.546173, z=-11.734661), carla.Rotation(pitch=0.000000, yaw=-2.000000, roll=-0.000000))
         ]
         self.world.on_tick(hud.on_world_tick)
         self.img_queue = Queue(maxsize=20)

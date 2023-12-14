@@ -31,7 +31,9 @@ class Control(object):
         self._world = world
         self.frame = 1
         self._prev_steering_angle = 0
-        self.model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'BinaryFocalLoss': BinaryFocalLoss})
+        # self.model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'BinaryFocalLoss': BinaryFocalLoss})
+        self.model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
+
 
     def control(self, steering, throttle):
         self._control.steer = steering
@@ -59,7 +61,7 @@ def main():
     client = carla.Client(HOST, PORT)
     client.set_timeout(2.0)
     settings = client.get_world().get_settings()
-    settings.fixed_delta_seconds = 0.01  # (1/20 = 0.05sec)
+    settings.fixed_delta_seconds = 0.05  # (1/20 = 0.05sec)
 
     display = pygame.display.set_mode((800, 600), pygame.HWSURFACE | pygame.DOUBLEBUF)
     hud = HUD(800, 600)

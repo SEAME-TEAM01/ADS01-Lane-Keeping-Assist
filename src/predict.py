@@ -14,6 +14,7 @@ def create_mask(pred_mask):
   pred_mask[..., -1] = tf.where(mask, 1, 0)
 
   # only if you drive on highway this is
+  pred_mask[0, :150, :, :] = 0
   return pred_mask[0]
 
 def extract_current_lanes(df_lanes=None, width=512):
