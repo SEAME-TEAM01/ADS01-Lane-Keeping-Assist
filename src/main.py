@@ -81,7 +81,7 @@ def run_world(steering_queue, img_queue):
                 control.throttle = 0.4
                 control.brake = 0.0
                 world.player.apply_control(control)
-            clock.tick_busy_loop(30)
+            clock.tick_busy_loop(35)
             world.tick(clock)
             world.render(display)
             pygame.display.flip()

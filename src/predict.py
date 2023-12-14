@@ -77,8 +77,8 @@ def pure_pursuit(reference_path=None, width=512, height=256):
   if reference_path is None:
     return None
 
-  vehicle_position = (width // 2, height)
-  lookahead_distance = 100
+  vehicle_position = (width // 2, height * 1.3)
+  lookahead_distance = 150
 
   lookahead_point = None
   
