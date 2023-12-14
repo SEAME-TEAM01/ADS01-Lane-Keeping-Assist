@@ -12,10 +12,10 @@ However, it's not enough to simply see objects - it's also necessary to understa
 
 The color in RGB is defined by a triplet of numbers, each of which takes a value from 0 to 255, for example, [127, 53, 65].
 
-(https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/rgb.png)
+<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/rgb.png">
 The main parameters of an image are its width and height in pixels, as well as the number of channels. The size of an uncompressed image in bytes is the product of its height, width, and number of channels.
 
-![rgb chanels.jpg](ADS%20for%20docs%202e45af324dd34bfe9413a907c7240d3d/rgb_chanels.jpg)
+<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/rgb chanels.jpg">
 
 Images are a set of numbers. If an image is black and white, each pixel stores a number from 0 (black) to 255 (white).
 
@@ -45,17 +45,14 @@ And here's how it looks - **logistic** **regression** :
 
 A **sigmoid function** has been added to the schema, which is a familiar activation function for neurons. It takes any real number as input and returns a number in the range from 0 (no activation) to 1 (activation present).
 
-[https://pictures.s3.yandex.net/resources/jpg_1586166688](https://pictures.s3.yandex.net/resources/jpg_1586166688)
+<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/sigmoid.jpg">
 
 This number in the range from 0 to 1 can be interpreted as a prediction of a neural network, indicating whether the object belongs to the negative or positive class.
 
-[https://pictures.s3.yandex.net/resources/jpg_1_1586166704](https://pictures.s3.yandex.net/resources/jpg_1_1586166704)
+<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/sigm.jpg">
 
 The loss function changes depending on the type of neural network. If **Mean Squared Error (MSE)** was used in regression tasks, **Binary Cross-Entropy** is suitable for binary classification.
 
-**BCE** is calculated as follows:
-
-[https://pictures.s3.yandex.net/resources/jpg_1586166784](https://pictures.s3.yandex.net/resources/jpg_1586166784)
 
 **Signal vanishing, ReLU**
 
@@ -63,9 +60,9 @@ With an increase in the number of layers, the quality of training deteriorates. 
 
 To eliminate signal vanishing, you can choose a different activation function. For example, ReLU (Rectified Linear Unit):
 
-[https://pictures.s3.yandex.net/resources/jpg_1586168291](https://pictures.s3.yandex.net/resources/jpg_1586168291)
+<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/relu_form.jpg">
 
-[https://pictures.s3.yandex.net/resources/jpgagg_1586168313](https://pictures.s3.yandex.net/resources/jpgagg_1586168313)
+<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/relu_graph.jpg">
 
 # Convolution
 
@@ -75,7 +72,7 @@ To find important elements for classification, convolution applies the same oper
 
 Convolution (*c*) is performed as follows: weights (*w*) "slide" along the sequence (*s*), and a scalar product is calculated at each position.
 
-[_2.mp4](ADS%20for%20docs%202e45af324dd34bfe9413a907c7240d3d/_2.mp4)
+<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/_2.mp4">
 
 Now let's take a look at how two-dimensional convolution works.
 
@@ -83,7 +80,7 @@ We have a two-dimensional image *s* with a size of *m×m* pixels and a weight ma
 
 The kernel moves over the image from left to right and top to bottom. At each position, its weights are multiplied element-wise with the corresponding pixels. The resulting products are then summed up and recorded as the pixels of the output.
 
-[112.mp4](ADS%20for%20docs%202e45af324dd34bfe9413a907c7240d3d/112.mp4)
+<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/112.mp4">
 
 Now - for examples.
 
