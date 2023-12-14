@@ -72,9 +72,9 @@ To find important elements for classification, convolution applies the same oper
 
 Convolution (*c*) is performed as follows: weights (*w*) "slide" along the sequence (*s*), and a scalar product is calculated at each position.
 
-<video width="320" height="240" controls>
-  <source src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/_2.mp4" type="video/mp4">
-</video>
+
+https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/assets/59653419/be10ad3e-380c-4d98-9ac9-525574ecfedb
+
 
 Now let's take a look at how two-dimensional convolution works.
 
@@ -82,7 +82,11 @@ We have a two-dimensional image *s* with a size of *m×m* pixels and a weight ma
 
 The kernel moves over the image from left to right and top to bottom. At each position, its weights are multiplied element-wise with the corresponding pixels. The resulting products are then summed up and recorded as the pixels of the output.
 
-<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/112.mp4">
+
+
+https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/assets/59653419/00e86f44-21b0-488b-8512-711db301cab3
+
+
 
 Now - for examples.
 
@@ -136,7 +140,7 @@ The difference in performance between the convolutional and fully connected laye
 
 1. **Padding.** This technique adds zeros (*zero padding*) to the edges of the matrix, so that the outermost pixels participate in convolution as many times as the center pixels. This way important information in the image will not be lost. Added zeros also take part in convolution. The padding value sets the thickness of the zero padding.
     
-    ![image (1).jpg](ADS%20for%20docs%202e45af324dd34bfe9413a907c7240d3d/image_(1).jpg)
+    <img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/pading.jpg">
     
 2. **Striding, or Stride.** This technique shifts the filter not by one pixel, but by a larger number of pixels. It is used when you want a smaller output image.
 
@@ -150,7 +154,7 @@ Example: an input image of size 7x7x3 and a 3x3x3 filter with padding 0 and step
 
 **Pooling** - This is a technique that reduces the number of model parameters. It can be seen in the example of Max Pooling
 
-![3_1586707886.jpg](ADS%20for%20docs%202e45af324dd34bfe9413a907c7240d3d/3_1586707886.jpg)
+<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/pooling.png">
 
 **Gradient descent (*SGD*)** is not the most optimal algorithm for training a neural network. If the step size is too small, the network will take a long time to train, and if the step size is too large, it may miss the minimum. To make the step selection automatic, the **Adam** algorithm is used. **Adaptive moment estimation,* "adaptivity based on moment estimation"). It selects different parameters for different neurons, which also speeds up model training.
 
@@ -170,7 +174,7 @@ The ResNet architecture arose to solve the problem of fading gradient in very de
 
 In the classification task, the goal is to predict the class of the entire image, while in the detection task, it is to predict each object. And in the segmentation task, it is to predict each pixel. The result of the prediction is another image that may look like this:
 
-![ADS%20for%20docs%202e45af324dd34bfe9413a907c7240d3d/Untitled_6_1659462322.png](ADS%20for%20docs%202e45af324dd34bfe9413a907c7240d3d/Untitled_6_1659462322.png)
+<img src="https://github.com/SEAME-TEAM01/ADS01-Lane-Keeping-Assist/blob/welida42-patch-1/docs/imgs/segmentation.png">
 
 Each color represents a separate class: chair, wall, ceiling, etc.
 
