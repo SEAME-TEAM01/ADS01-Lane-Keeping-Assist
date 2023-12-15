@@ -7,10 +7,10 @@ import pygame
 import numpy as np
 import cv2
 import tensorflow as tf
-from queue import Queue
+from multiprocessing import Queue
 
 class World(object):
-    def __init__(self, carla_world, hud, actor_filter):
+    def __init__(self, carla_world, hud, actor_filter, img_queue):
         self.world = carla_world
         self.map = self.world.get_map()
         self.control = carla.VehicleControl()
@@ -24,10 +24,24 @@ class World(object):
         self._weather_index = 0
         self._actor_filter = actor_filter
         self.start_positions = [
-            carla.Transform(carla.Location(x=-29.967329, y=406.546173, z=-11.734661), carla.Rotation(pitch=0.000000, yaw=-2.000000, roll=-0.000000))
+            # Town10_Opt
+            # carla.Transform(carla.Location(x=-114.218651, y=41.329021, z=2.002613), carla.Rotation(pitch=0.128858, yaw=90.870064, roll=-0.008606)),
+            # Town05_Opt
+            # carla.Transform(carla.Location(x=-98.211128, y=201.474686, z=8.077906), carla.Rotation(pitch=1.469741, yaw=-178.878891, roll=0.028842)),
+            # Town04_Opt
+            # carla.Transform(carla.Location(x=-69.105873, y=-189.915115, z=2.003335), carla.Rotation(pitch=0.005826, yaw=135.761108, roll=0.000025)),
+            # carla.Transform(carla.Location(x=-43.935440, y=-225.968719, z=2.001398), carla.Rotation(pitch=-0.004576, yaw=127.487823, roll=-0.001221))
+            #1
+            carla.Transform(carla.Location(x=-392.799988, y=16.368937, z=2.002937), carla.Rotation(pitch=0.018148, yaw=-179.063934, roll=0.001041))
+            # Town07_Opt
+            # carla.Transform(carla.Location(x=-24.028019, y=-246.138351, z=2.860913),carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)),
+            # Town03_Opt
+            # carla.Transform(carla.Location(x=36.710205, y=207.437317, z=2.038867), carla.Rotation(pitch=0.438000, yaw=2.922737, roll=0.045261))
+            # Town01_Opt
+            # carla.Transform(carla.Location(x=-29.967329, y=406.546173, z=-11.734661), carla.Rotation(pitch=0.000000, yaw=-2.000000, roll=-0.000000))
         ]
         self.world.on_tick(hud.on_world_tick)
-        self.img_queue = Queue(maxsize=20)
+        self.img_queue = img_queue
         self.restart()
         cam_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
         cam_bp.set_attribute("image_size_x",str(512))
@@ -110,14 +124,9 @@ class World(object):
 
     def process_image(self, image):
         image.save_to_disk('_out/%08d.jpeg' % image.frame)
-        img = tf.io.read_file('_out/%08d.jpeg' % image.frame)
-        os.remove('_out/%08d.jpeg' % image.frame)
-        img = tf.image.decode_jpeg(img, channels=3) 
-        img = tf.image.convert_image_dtype(img, tf.float32)
-        img = tf.image.resize(img, [256, 512], method='nearest')
         if (self.img_queue.full() == True):
             self.img_queue.get()
-        self.img_queue.put(img)
+        self.img_queue.put('_out/%08d.jpeg' % image.frame)
 
     def modify_vehicle_physics(self, actor):
         #If actor is not a vehicle, we cannot use the physics control

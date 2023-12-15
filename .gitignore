@@ -1,5 +1,6 @@
 # Custom
-model/model.hdf5
+model/*.hdf5
+pred_out/*
 log/
 dataset/*
 _out/
