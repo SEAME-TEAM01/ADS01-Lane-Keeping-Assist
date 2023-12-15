@@ -25,8 +25,8 @@ class Control(object):
         self._control = carla.VehicleControl()
         self.frame = 1
         self._prev_steering_angle = 0
-        self.model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'BinaryFocalLoss': BinaryFocalLoss})
-        # self.model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
+        # self.model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'BinaryFocalLoss': BinaryFocalLoss})
+        self.model = keras.models.load_model(os.getenv('MODEL_PATH'), custom_objects={'dice_coef': dice_coef, 'dice_loss': dice_loss})
 
     def preprocess(self, path):
         img = tf.io.read_file(path)
@@ -81,7 +81,7 @@ def run_world(steering_queue, img_queue):
                 control.throttle = 0.4
                 control.brake = 0.0
                 world.player.apply_control(control)
-            clock.tick_busy_loop(35)
+            clock.tick_busy_loop(30)
             world.tick(clock)
             world.render(display)
             pygame.display.flip()

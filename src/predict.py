@@ -77,8 +77,8 @@ def pure_pursuit(reference_path=None, width=512, height=256):
   if reference_path is None:
     return None
 
-  vehicle_position = (width // 2, height * 1.3)
-  lookahead_distance = 150
+  vehicle_position = (width // 2, height)
+  lookahead_distance = 100
 
   lookahead_point = None
   
@@ -227,8 +227,8 @@ def predict_steering_angle(image, model=None, frame=1):
     # draw_lanes(left_lane=left_lane, right_lane=right_lane)
     path_points = calculate_ideal_path(left_lane=left_lane, right_lane=right_lane)
     steering_angle = pure_pursuit(reference_path=path_points, width=512, height=256)
-    # image = plot_lines(image, left_lane, right_lane, path_points)
-    # plot_heading_line(image, steering_angle, frame=frame)
+    image = plot_lines(image, left_lane, right_lane, path_points)
+    plot_heading_line(image, steering_angle, frame=frame)
     
     steering_angle = np.pi - steering_angle
     normalized_angle = (2 * steering_angle / np.pi) - 1

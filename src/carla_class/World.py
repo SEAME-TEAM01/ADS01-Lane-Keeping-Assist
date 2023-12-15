@@ -31,11 +31,12 @@ class World(object):
             # Town04_Opt
             # carla.Transform(carla.Location(x=-69.105873, y=-189.915115, z=2.003335), carla.Rotation(pitch=0.005826, yaw=135.761108, roll=0.000025)),
             # carla.Transform(carla.Location(x=-43.935440, y=-225.968719, z=2.001398), carla.Rotation(pitch=-0.004576, yaw=127.487823, roll=-0.001221))
+            #1
             carla.Transform(carla.Location(x=-392.799988, y=16.368937, z=2.002937), carla.Rotation(pitch=0.018148, yaw=-179.063934, roll=0.001041))
             # Town07_Opt
             # carla.Transform(carla.Location(x=-24.028019, y=-246.138351, z=2.860913),carla.Rotation(pitch=4.539699, yaw=-170.428787, roll=-0.149170)),
             # Town03_Opt
-            # carla.Transform(carla.Location(x=-85.302979, y=156.585388, z=2.003271),carla.Rotation(pitch=0.000376, yaw=87.022415, roll=0.000014)),
+            # carla.Transform(carla.Location(x=36.710205, y=207.437317, z=2.038867), carla.Rotation(pitch=0.438000, yaw=2.922737, roll=0.045261))
             # Town01_Opt
             # carla.Transform(carla.Location(x=-29.967329, y=406.546173, z=-11.734661), carla.Rotation(pitch=0.000000, yaw=-2.000000, roll=-0.000000))
         ]
